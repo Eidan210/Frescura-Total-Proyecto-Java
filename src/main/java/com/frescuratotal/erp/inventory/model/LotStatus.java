@@ -6,9 +6,23 @@ public enum LotStatus {
     EXPIRED(3),
     IN_QUARANTINE(4);
 
-    public final int id;
+    private final int id;
 
     LotStatus(int id){
         this.id = id;
     }
+
+    public int getId(){
+        return id;
+    }
+
+    private static LotStatus fromId(int id){
+        for(LotStatus status : values()){
+            if(status.getId() == id){
+                return status;
+            }
+        }
+        throw new IllegalArgumentException("Unknown lot status id: " + id);
+    }
+
 }
