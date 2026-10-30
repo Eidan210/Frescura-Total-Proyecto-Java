@@ -3,42 +3,42 @@ package com.frescuratotal.erp.suppliers.model;
 import java.time.LocalDateTime;
 
 public class Supplier {
-    private int id_proveedor;
-    private String nombre;
+    private int id;
+    private String name;
     private String nit;
-    private String persona_contacto;
+    private String contactPerson;
     private String email;
-    private String telefono;
-    private String direccion;
-    private int activo;
-    private LocalDateTime fecha_registro;
+    private String phone;
+    private String address;
+    private int active;
+    private LocalDateTime registrationDate;
 
-    public Supplier(int id_proveedor, String nombre, String nit, String persona_contacto, String email, String telefono, String direccion, int activo, LocalDateTime fecha_registro) {
-        this.id_proveedor = id_proveedor;
-        this.nombre = nombre;
+    public Supplier(int id, String name, String nit, String contactPerson, String email, String phone, String address, int active, LocalDateTime registrationDate) {
+        this.id = id;
+        this.name = name;
         this.nit = nit;
-        this.persona_contacto = persona_contacto;
+        this.contactPerson = contactPerson;
         this.email = email;
-        this.telefono = telefono;
-        this.direccion = direccion;
-        this.activo = activo;
-        this.fecha_registro = fecha_registro;
+        this.phone = phone;
+        this.address = address;
+        this.active = active;
+        this.registrationDate = registrationDate;
     }
 
-    public int getId_proveedor() {
-        return id_proveedor;
+    public int getId() {
+        return id;
     }
 
-    public void setId_proveedor(int id_proveedor) {
-        this.id_proveedor = id_proveedor;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getName() {
+        return name;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getNit() {
@@ -49,12 +49,12 @@ public class Supplier {
         this.nit = nit;
     }
 
-    public String getPersona_contacto() {
-        return persona_contacto;
+    public String getContactPerson() {
+        return contactPerson;
     }
 
-    public void setPersona_contacto(String persona_contacto) {
-        this.persona_contacto = persona_contacto;
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
     }
 
     public String getEmail() {
@@ -65,50 +65,50 @@ public class Supplier {
         this.email = email;
     }
 
-    public String getTelefono() {
-        return telefono;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public String getDireccion() {
-        return direccion;
+    public String getAddress() {
+        return address;
     }
 
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
-    public int getActivo() {
-        return activo;
+    public int getActive() {
+        return active;
     }
 
-    public void setActivo(int activo) {
-        this.activo = activo;
+    public void setActive(int active) {
+        this.active = active;
     }
 
-    public LocalDateTime getFecha_registro() {
-        return fecha_registro;
+    public LocalDateTime getRegistrationDate() {
+        return registrationDate;
     }
 
-    public void setFecha_registro(LocalDateTime fecha_registro) {
-        this.fecha_registro = fecha_registro;
+    public void setRegistrationDate(LocalDateTime registrationDate) {
+        this.registrationDate = registrationDate;
     }
 
     @Override
     public String toString() {
         return "Supplier{" +
-                "id_proveedor=" + id_proveedor +
-                ", nombre='" + nombre + '\'' +
+                "id=" + id +
+                ", name='" + name + '\'' +
                 ", nit='" + nit + '\'' +
-                ", persona_contacto='" + persona_contacto + '\'' +
+                ", contactPerson='" + contactPerson + '\'' +
                 ", email='" + email + '\'' +
-                ", telefono='" + telefono + '\'' +
-                ", direccion='" + direccion + '\'' +
-                ", activo=" + activo +
-                ", fecha_registro=" + fecha_registro +
+                ", phone='" + phone + '\'' +
+                ", address='" + address + '\'' +
+                ", active=" + active +
+                ", registrationDate=" + registrationDate +
                 '}';
     }
 }
