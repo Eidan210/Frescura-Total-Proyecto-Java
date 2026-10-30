@@ -25,6 +25,9 @@ public class Supplier {
         this.registrationDate = registrationDate;
     }
 
+    public Supplier() {
+    }
+
     public int getId() {
         return id;
     }
