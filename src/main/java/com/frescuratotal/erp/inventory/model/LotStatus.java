@@ -16,7 +16,7 @@ public enum LotStatus {
         return id;
     }
 
-    private static LotStatus fromId(int id){
+    public static LotStatus fromId(int id){
         for(LotStatus status : values()){
             if(status.getId() == id){
                 return status;
