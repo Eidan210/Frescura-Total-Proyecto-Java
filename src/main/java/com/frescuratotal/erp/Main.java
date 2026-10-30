@@ -24,7 +24,7 @@ public class Main {
 
         do {
             // 1. Print the menu options
-            System.out.println("=== ERP Frescura Total ===");
+            System.out.println("====== ERP Frescura Total ======");
             System.out.println("1. Inventory\n" +
                     "2. Sales\n" +
                     "3. Suppliers\n" +
@@ -32,6 +32,7 @@ public class Main {
                     "5. Exit");
 
             // 2. Read the user's option
+            System.out.print("Option: ");
             option = sc.nextInt();
 
             // 3. Decide what to do
@@ -64,6 +65,6 @@ public class Main {
         } while (option != 5);
 
         sc.close();
-
+        conn.close();
     }
 }
