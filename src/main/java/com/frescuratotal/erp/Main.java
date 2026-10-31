@@ -1,9 +1,6 @@
 package com.frescuratotal.erp;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
-import com.frescuratotal.erp.suppliers.controller.SupplierController;
-import com.frescuratotal.erp.suppliers.model.SupplierDaoImpl;
-import com.frescuratotal.erp.suppliers.view.SupplierView;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -50,7 +47,7 @@ public class Main {
                     break;
                 case 3:
                     // Suppliers module
-                    new SupplierController(new SupplierView(sc), new SupplierDaoImpl()).start();
+                    System.out.println("Coming soon");
                     break;
                 case 4:
                     // logistics module
