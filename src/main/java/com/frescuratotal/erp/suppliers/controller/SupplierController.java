@@ -1,5 +1,67 @@
 package com.frescuratotal.erp.suppliers.controller;
 
-public class SupplierController {
+import com.frescuratotal.erp.suppliers.model.Supplier;
+import com.frescuratotal.erp.suppliers.model.SupplierDao;
+import com.frescuratotal.erp.suppliers.view.SupplierView;
 
+import java.util.Optional;
+
+public class SupplierController {
+    private final SupplierView view;
+    private final SupplierDao dao;
+
+    public SupplierController(SupplierView view, SupplierDao dao) {
+        this.view = view;
+        this.dao = dao;
+    }
+
+    public void start() {
+        int option;
+        do {
+            option = view.showMenu();
+            switch (option) {
+                case 1 -> register();
+                case 2 -> view.showSuppliers(dao.findAll());
+                case 3 -> findById();
+                case 4 -> update();
+                case 5 -> delete();
+                case 6 -> view.showMessage("Returning to main menu...");
+                default -> view.showMessage("Invalid option");
+            }
+        } while (option != 6);
+    }
+
+    private void register() {
+        Supplier supplier = view.readNewSupplier();
+        view.showMessage(dao.save(supplier) ? "Supplier registered successfully." : "Error registering supplier.");
+    }
+
+    private void findById() {
+        findSupplier().ifPresent(view::showSupplier);
+    }
+
+    private void update() {
+        Optional<Supplier> found = findSupplier();
+        if (found.isEmpty()) return;
+        Supplier supplier = found.get();
+        view.readSupplierChanges(supplier);
+        view.showMessage(dao.update(supplier) ? "Supplier updated successfully." : "Error updating supplier.");
+    }
+
+    private void delete() {
+        Optional<Supplier> found = findSupplier();
+        if (found.isEmpty()) return;
+        view.showSupplier(found.get());
+        if (!view.confirm("Delete this supplier?")) {
+            view.showMessage("Deletion cancelled.");
+            return;
+        }
+        view.showMessage(dao.delete(found.get().getId()) ? "Supplier deleted successfully." : "Error deleting supplier.");
+    }
+
+    private Optional<Supplier> findSupplier() {
+        Optional<Supplier> supplier = dao.findById(view.readId());
+        if (supplier.isEmpty()) view.showMessage("Supplier not found.");
+        return supplier;
+    }
 }
