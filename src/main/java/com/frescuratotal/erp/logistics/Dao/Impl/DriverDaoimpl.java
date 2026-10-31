@@ -1,8 +1,8 @@
-package com.frescuratotal.erp.logistics.model.LogisticsDaoImpl;
+package com.frescuratotal.erp.logistics.Dao.Impl;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.logistics.model.Driver;
-import com.frescuratotal.erp.logistics.model.LogisticsDao.DriverDao;
+import com.frescuratotal.erp.logistics.Dao.DriverDao;
 
 import java.sql.*;
 import java.util.ArrayList;

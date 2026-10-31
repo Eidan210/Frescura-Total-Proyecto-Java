@@ -1,6 +1,6 @@
-package com.frescuratotal.erp.logistics.model.LogisticsDaoImpl;
+package com.frescuratotal.erp.logistics.Dao.Impl;
 
-import com.frescuratotal.erp.logistics.model.LogisticsDao.RouteSaleDao;
+import com.frescuratotal.erp.logistics.Dao.RouteSaleDao;
 import com.frescuratotal.erp.logistics.model.RouteSale;
 
 import java.util.List;
