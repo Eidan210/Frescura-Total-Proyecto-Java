@@ -1,9 +1,14 @@
 package com.frescuratotal.erp;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
+import com.frescuratotal.erp.inventory.model.Lot;
+import com.frescuratotal.erp.inventory.model.LotDaoImpl;
+import com.frescuratotal.erp.inventory.model.LotStatus;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Main {

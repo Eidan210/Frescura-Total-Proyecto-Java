@@ -8,6 +8,10 @@ public interface LotDao {
     List<Lot> findAvailableLots(int productId);
 
     void decreaseQuantity(int lotId, BigDecimal amount);
+    void save(Lot lot);
+    Lot findById(int lotId);
+    List<Lot> findAll();
+    void updateStatus(int lotId, LotStatus status);
 
 
 }
