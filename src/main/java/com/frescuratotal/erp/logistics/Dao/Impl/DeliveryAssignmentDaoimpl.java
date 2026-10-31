@@ -1,10 +1,10 @@
-package com.frescuratotal.erp.logistics.model.LogisticsDaoImpl;
+package com.frescuratotal.erp.logistics.Dao.Impl;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.logistics.model.DeliveryAssignment;
 import com.frescuratotal.erp.logistics.model.DeliveryRoute;
 import com.frescuratotal.erp.logistics.model.Driver;
-import com.frescuratotal.erp.logistics.model.LogisticsDao.DeliveryAssignmentDao;
+import com.frescuratotal.erp.logistics.Dao.DeliveryAssignmentDao;
 import com.frescuratotal.erp.logistics.model.Vehicle;
 
 import java.sql.*;

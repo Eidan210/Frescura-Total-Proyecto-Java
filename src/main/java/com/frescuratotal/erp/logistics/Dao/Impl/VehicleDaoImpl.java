@@ -1,7 +1,7 @@
-package com.frescuratotal.erp.logistics.model.LogisticsDaoImpl;
+package com.frescuratotal.erp.logistics.Dao.Impl;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
-import com.frescuratotal.erp.logistics.model.LogisticsDao.VehicleDao;
+import com.frescuratotal.erp.logistics.Dao.VehicleDao;
 import com.frescuratotal.erp.logistics.model.Vehicle;
 import com.frescuratotal.erp.logistics.model.status.VehicleStatus;
 

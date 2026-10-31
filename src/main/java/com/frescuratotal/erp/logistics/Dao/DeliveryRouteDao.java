@@ -1,4 +1,4 @@
-package com.frescuratotal.erp.logistics.model.LogisticsDao;
+package com.frescuratotal.erp.logistics.Dao;
 
 import com.frescuratotal.erp.logistics.model.DeliveryRoute;
 import com.frescuratotal.erp.logistics.model.status.DeliveryRouteStatus;
