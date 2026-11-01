@@ -1,15 +1,12 @@
 package com.frescuratotal.erp;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
-import com.frescuratotal.erp.inventory.model.Lot;
-import com.frescuratotal.erp.inventory.model.LotDaoImpl;
-import com.frescuratotal.erp.inventory.model.LotStatus;
-import com.frescuratotal.erp.inventory.model.ProductDaoImpl;
+import com.frescuratotal.erp.suppliers.controller.SupplierController;
+import com.frescuratotal.erp.suppliers.model.SupplierDaoImpl;
+import com.frescuratotal.erp.suppliers.view.SupplierView;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Main {
@@ -53,7 +50,7 @@ public class Main {
                     break;
                 case 3:
                     // Suppliers module
-                    System.out.println("Coming soon");
+                    new SupplierController(new SupplierView(sc), new SupplierDaoImpl()).start();
                     break;
                 case 4:
                     // logistics module
