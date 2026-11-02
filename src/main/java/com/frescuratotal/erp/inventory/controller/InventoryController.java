@@ -1,15 +1,19 @@
 package com.frescuratotal.erp.inventory.controller;
 
+import com.frescuratotal.erp.inventory.model.InventoryService;
+import com.frescuratotal.erp.inventory.model.Lot;
 import com.frescuratotal.erp.inventory.model.LotDao;
 import com.frescuratotal.erp.inventory.view.InventoryView;
 
 public class InventoryController {
     private final InventoryView view;
     private final LotDao lotDao;
+    private final InventoryService service;
 
-    public InventoryController(InventoryView view, LotDao lotDao) {
+    public InventoryController(InventoryView view, LotDao lotDao, InventoryService service) {
         this.view = view;
         this.lotDao = lotDao;
+        this.service = service;
     }
 
     public void start() {
@@ -22,7 +26,15 @@ public class InventoryController {
                     int productId = view.readProductId();
                     view.showLots(lotDao.findAvailableLots(productId));
                 }
-                case 3 -> view.showMessage("Coming soon");
+                case 3 -> {
+                    try {
+                        Lot newLot = view.readNewLot();
+                        Lot saved = service.registerReception(newLot);
+                        view.showMessage("Lot "+saved.getLotNumber()+" registered successfully");
+                    } catch (IllegalArgumentException e) {
+                        view.showMessage("Error: "+ e.getMessage());
+                    }
+                }
                 case 4 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }

@@ -2,6 +2,9 @@ package com.frescuratotal.erp.inventory.view;
 
 import com.frescuratotal.erp.inventory.model.Lot;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -44,6 +47,21 @@ public class InventoryView {
         System.out.println(message);
     }
 
+    public Lot readNewLot() {
+        Lot lot = new Lot();
+
+        lot.setProductId(readInt("Product ID: "));
+        lot.setSupplierId(readInt("Supplier ID: "));
+        lot.setExpirationDate(readDate("Expiration date (yyyy-MM-dd): "));
+        lot.setQuantity(readBigDecimal("Quantity: "));
+        lot.setPurchasePrice(readBigDecimal("Purchase price: "));
+        lot.setSalePrice(readBigDecimal("Sale price: "));
+        lot.setAisle(readLine("Aisle: "));
+        lot.setShelf(readLine("Shelf: "));
+
+        return lot;
+    }
+
     private int readInt(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -58,4 +76,41 @@ public class InventoryView {
             }
         }
     }
+
+    private BigDecimal readBigDecimal(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String line = sc.nextLine().trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            try {
+                return new BigDecimal(line);
+            } catch (NumberFormatException e) {
+                System.out.println("'" + line + "' is not a valid number.");
+            }
+        }
+    }
+
+    private LocalDate readDate(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String line = sc.nextLine().trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            try {
+                return LocalDate.parse(line);
+            } catch (DateTimeParseException e) {
+                System.out.println("'" + line + "' is not a valid date. Use yyyy-MM-dd.");
+            }
+        }
+    }
+
+    private String readLine(String prompt) {
+        System.out.print(prompt);
+        String line = sc.nextLine().trim();
+        return line;
+    }
+
 }
