@@ -1,6 +1,9 @@
 package com.frescuratotal.erp;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
+import com.frescuratotal.erp.inventory.controller.InventoryController;
+import com.frescuratotal.erp.inventory.model.LotDaoImpl;
+import com.frescuratotal.erp.inventory.view.InventoryView;
 import com.frescuratotal.erp.suppliers.controller.SupplierController;
 import com.frescuratotal.erp.suppliers.model.SupplierDaoImpl;
 import com.frescuratotal.erp.suppliers.view.SupplierView;
@@ -42,7 +45,7 @@ public class Main {
             switch (option) {
                 case 1:
                     // Inventory module
-                    System.out.println("Coming soon");
+                    new InventoryController(new InventoryView(sc), new LotDaoImpl()).start();
                     break;
                 case 2:
                     // Sales module
