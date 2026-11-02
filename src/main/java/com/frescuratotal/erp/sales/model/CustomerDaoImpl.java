@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,17 +88,63 @@ public class CustomerDaoImpl implements CustomerDao {
 
     @Override
     public List<Customer> findAll() {
-        return List.of();
+        String sql = "SELECT * FROM clientes";
+        List<Customer> customers = new ArrayList<>();
+
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while(rs.next()) {
+
+                    customers.add(mapCustomer(rs));
+                }
+            }
+
+        }catch(SQLException e){
+            throw new RuntimeException("Error searching customers ",e);
+        }
+
+        return customers;
     }
 
     @Override
     public boolean update(Customer customer) {
-        return false;
+        String sql = "UPDATE clientes SET nombre = ?, documento = ?, email = ?, telefono = ?, direccion = ?, id_tipo = ? WHERE id_cliente = ?";
+
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setString(1,customer.getName());
+            ps.setString(2,customer.getDocument());
+            ps.setString(3,customer.getEmail());
+            ps.setString(4, customer.getPhone());
+            ps.setString(5, customer.getAddress());
+            ps.setInt(6,customer.getType().getId());
+
+            ps.setInt(7,customer.getId());
+
+            return ps.executeUpdate() > 0;
+
+        }catch(SQLException e){
+            throw new RuntimeException("Error updating customer ",e);
+        }
     }
 
     @Override
     public boolean delete(int id) {
-        return false;
+        String sql = "DELETE FROM clientes WHERE id_cliente = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setInt(1,id);
+
+            return ps.executeUpdate() > 0;
+
+        }catch(SQLException e){
+            throw new RuntimeException("Error deleting customer ",e);
+        }
     }
 
     private Customer mapCustomer(ResultSet rs) throws SQLException {
