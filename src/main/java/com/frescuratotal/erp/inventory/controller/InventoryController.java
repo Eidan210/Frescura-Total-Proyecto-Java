@@ -55,9 +55,17 @@ public class InventoryController {
                         view.showMessage("Error: "+ e.getMessage());
                     }
                 }
-                case 6 -> view.showMessage("Returning to main menu...");
-                case 7 -> view.showMessage("Returning to main menu...");
-                case 8 -> view.showMessage("Returning to main menu...");
+                case 6 -> {
+                    try {
+                        WasteRecord newWaste = view.readNewWaste();
+                        service.registerWaste(newWaste);
+                        view.showMessage("Waste of " + newWaste.getLostQuantity() + " registered for lot " + newWaste.getLotId() + ".");
+                    } catch (IllegalArgumentException e) {
+                        view.showMessage("Error: " + e.getMessage());
+                    }
+                }
+                case 7 -> view.showMessage("Coming soon");
+                case 8 -> view.showMessage("Coming soon");
                 case 9 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }

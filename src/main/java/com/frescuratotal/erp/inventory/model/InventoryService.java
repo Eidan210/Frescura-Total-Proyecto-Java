@@ -97,4 +97,27 @@ public class InventoryService {
 
         }
     }
+
+    public void registerWaste(WasteRecord waste) {
+        Lot lot = lotDao.findById(waste.getLotId());
+
+        if (lot == null) {
+            throw new IllegalArgumentException("Lot " + waste.getLotId() + " does not exist.");
+        }
+
+        if (waste.getLostQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0.");
+        }
+
+        if (waste.getLostQuantity().compareTo(lot.getQuantity()) > 0) {
+            throw new IllegalArgumentException("Lost quantity exceeds available stock (" + lot.getQuantity() + ").");
+        }
+        if (waste.getReason().isEmpty()) {
+            throw new IllegalArgumentException("Reason cannot be empty.");
+        }
+        qualityDao.saveWaste(waste);
+
+        lotDao.decreaseQuantity(lot.getId(), waste.getLostQuantity());
+    }
 }
+

@@ -1,9 +1,6 @@
 package com.frescuratotal.erp.inventory.view;
 
-import com.frescuratotal.erp.inventory.model.InspectionResult;
-import com.frescuratotal.erp.inventory.model.Lot;
-import com.frescuratotal.erp.inventory.model.QualityInspection;
-import com.frescuratotal.erp.inventory.model.QuarantineRecord;
+import com.frescuratotal.erp.inventory.model.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -101,6 +98,16 @@ public class InventoryView {
         inspection.setNotes(readLine("Notes: "));
 
         return inspection;
+    }
+
+    public WasteRecord readNewWaste() {
+        WasteRecord waste = new WasteRecord();
+
+        waste.setLotId(readInt("Lot ID: "));
+        waste.setLostQuantity(readBigDecimal("Lost quantity: "));
+        waste.setReason(readLine("Reason: "));
+        waste.setRegisteredBy(readLine("Registered by: "));
+        return waste;
     }
 
     private int readInt(String prompt) {
