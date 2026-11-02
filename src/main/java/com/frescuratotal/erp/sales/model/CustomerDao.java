@@ -1,7 +1,5 @@
 package com.frescuratotal.erp.sales.model;
 
-
-
 import java.util.List;
 import java.util.Optional;
 
