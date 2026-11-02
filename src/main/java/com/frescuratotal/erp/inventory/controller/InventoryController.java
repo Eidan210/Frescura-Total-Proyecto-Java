@@ -3,6 +3,7 @@ package com.frescuratotal.erp.inventory.controller;
 import com.frescuratotal.erp.inventory.model.InventoryService;
 import com.frescuratotal.erp.inventory.model.Lot;
 import com.frescuratotal.erp.inventory.model.LotDao;
+import com.frescuratotal.erp.inventory.model.QuarantineRecord;
 import com.frescuratotal.erp.inventory.view.InventoryView;
 
 public class InventoryController {
@@ -35,10 +36,23 @@ public class InventoryController {
                         view.showMessage("Error: "+ e.getMessage());
                     }
                 }
-                case 4 -> view.showMessage("Returning to main menu...");
+                case 4 -> {
+                    try {
+                        QuarantineRecord newQuarantine = view.readNewQuarantine();
+                        service.putInQuarantine(newQuarantine);
+                        view.showMessage("Lot " + newQuarantine.getLotId() + " is now in quarantine");
+                    } catch (IllegalArgumentException e){
+                        view.showMessage("Error: "+ e.getMessage());
+                    }
+                }
+                case 5 -> view.showMessage("Returning to main menu...");
+                case 6 -> view.showMessage("Returning to main menu...");
+                case 7 -> view.showMessage("Returning to main menu...");
+                case 8 -> view.showMessage("Returning to main menu...");
+                case 9 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
-        } while (option != 4);
+        } while (option != 9);
     }
 }
 

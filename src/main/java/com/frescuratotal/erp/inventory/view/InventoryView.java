@@ -1,6 +1,7 @@
 package com.frescuratotal.erp.inventory.view;
 
 import com.frescuratotal.erp.inventory.model.Lot;
+import com.frescuratotal.erp.inventory.model.QuarantineRecord;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,7 +21,12 @@ public class InventoryView {
         System.out.println("1. List all lots\n" +
                 "2. List available lots by product (FEFO)\n" +
                 "3. Register goods reception\n" +
-                "4. Back");
+                "4. Put lot in quarantine\n" +
+                "5. Inspect quarantined lot\n" +
+                "6. Register waste\n" +
+                "7. Run expiration check\n" +
+                "8. Trace lot\n" +
+                "9. Back");
         return readInt("Option: ");
     }
 
@@ -60,6 +66,15 @@ public class InventoryView {
         lot.setShelf(readLine("Shelf: "));
 
         return lot;
+    }
+
+    public QuarantineRecord readNewQuarantine() {
+        QuarantineRecord quarantine = new QuarantineRecord();
+        quarantine.setLotId(readInt("Lot ID: "));
+        quarantine.setReason(readLine("Reason: "));
+        quarantine.setRegisteredBy(readLine("Registered by: "));
+
+        return quarantine;
     }
 
     private int readInt(String prompt) {

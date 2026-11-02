@@ -2,10 +2,7 @@ package com.frescuratotal.erp;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.inventory.controller.InventoryController;
-import com.frescuratotal.erp.inventory.model.InventoryService;
-import com.frescuratotal.erp.inventory.model.LotDao;
-import com.frescuratotal.erp.inventory.model.LotDaoImpl;
-import com.frescuratotal.erp.inventory.model.ProductDaoImpl;
+import com.frescuratotal.erp.inventory.model.*;
 import com.frescuratotal.erp.inventory.view.InventoryView;
 import com.frescuratotal.erp.suppliers.controller.SupplierController;
 import com.frescuratotal.erp.suppliers.model.SupplierDaoImpl;
@@ -51,7 +48,7 @@ public class Main {
                     // Inventory module
                     LotDao lotDao = new LotDaoImpl();
                     new InventoryController(new InventoryView(sc), lotDao,
-                            new InventoryService(lotDao, new ProductDaoImpl(), new SupplierDaoImpl())).start();
+                            new InventoryService(lotDao, new ProductDaoImpl(), new SupplierDaoImpl(), new QualityDaoImpl())).start();
                     break;
                 case 2:
                     // Sales module
