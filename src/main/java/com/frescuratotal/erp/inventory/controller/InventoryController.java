@@ -1,9 +1,6 @@
 package com.frescuratotal.erp.inventory.controller;
 
-import com.frescuratotal.erp.inventory.model.InventoryService;
-import com.frescuratotal.erp.inventory.model.Lot;
-import com.frescuratotal.erp.inventory.model.LotDao;
-import com.frescuratotal.erp.inventory.model.QuarantineRecord;
+import com.frescuratotal.erp.inventory.model.*;
 import com.frescuratotal.erp.inventory.view.InventoryView;
 
 public class InventoryController {
@@ -45,7 +42,19 @@ public class InventoryController {
                         view.showMessage("Error: "+ e.getMessage());
                     }
                 }
-                case 5 -> view.showMessage("Returning to main menu...");
+                case 5 -> {
+                    try{
+                        QualityInspection newInspection = view.readNewInspection();
+                        service.inspectLot(newInspection);
+                        if (newInspection.getResult() == InspectionResult.APPROVED) {
+                            view.showMessage("Lot " + newInspection.getLotId() + " approved and available for sale.");
+                        } else {
+                            view.showMessage("Lot " + newInspection.getLotId() + " rejected and registered as waste.");
+                        }
+                    } catch (IllegalArgumentException e){
+                        view.showMessage("Error: "+ e.getMessage());
+                    }
+                }
                 case 6 -> view.showMessage("Returning to main menu...");
                 case 7 -> view.showMessage("Returning to main menu...");
                 case 8 -> view.showMessage("Returning to main menu...");

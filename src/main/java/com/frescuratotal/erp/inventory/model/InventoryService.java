@@ -50,7 +50,7 @@ public class InventoryService {
         if(lot.getStatusId() == LotStatus.IN_QUARANTINE.getId()){
             throw new IllegalArgumentException("Lot " + lot.getLotNumber() + " is already in quarantine.");
         }
-        // 3. Si el motivo está vacío → throw
+
         if(quarantine.getReason().isEmpty()){
             throw new IllegalArgumentException("Reason cannot be empty.");
         }
@@ -58,5 +58,43 @@ public class InventoryService {
         qualityDao.saveQuarantine(quarantine);
 
         lotDao.updateStatus(lot.getId(),LotStatus.IN_QUARANTINE);
+    }
+
+    public void inspectLot(QualityInspection inspection) {
+        Lot lot = lotDao.findById(inspection.getLotId());
+
+        if (lot == null) {
+            throw new IllegalArgumentException("Lot " + inspection.getLotId() + " does not exist.");
+        }
+
+        if (lot.getStatusId() != LotStatus.IN_QUARANTINE.getId()) {
+            throw new IllegalArgumentException("Lot " + lot.getLotNumber() + " is not in quarantine.");
+        }
+
+        if (inspection.getInspectorName().isEmpty()){
+            throw new IllegalArgumentException("Inspector name cannot be empty.");
+        }
+
+        if (inspection.getResult() == InspectionResult.REJECTED && (inspection.getRejectionReason() == null || inspection.getRejectionReason().isEmpty())) {
+            throw new IllegalArgumentException("Reason cannot be empty.");
+        }
+
+        int inspectionId = qualityDao.saveInspection(inspection);
+
+
+        if (inspection.getResult() == InspectionResult.APPROVED) {
+            qualityDao.resolveQuarantine(inspection.getLotId(),"Approved by: "+inspection.getInspectorName());
+            lotDao.updateStatus(inspection.getLotId(), LotStatus.AVAILABLE);
+        }
+
+        if (inspection.getResult() == InspectionResult.REJECTED) {
+            WasteRecord waste = new WasteRecord(lot.getId(), inspectionId, lot.getQuantity(), inspection.getRejectionReason(), null, inspection.getInspectorName());
+            qualityDao.saveWaste(waste);
+
+            lotDao.decreaseQuantity(lot.getId(), lot.getQuantity());
+
+            qualityDao.resolveQuarantine(lot.getId(),"Rejected by: "+inspection.getInspectorName());
+
+        }
     }
 }

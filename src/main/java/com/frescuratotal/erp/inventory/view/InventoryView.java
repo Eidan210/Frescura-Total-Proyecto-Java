@@ -1,6 +1,8 @@
 package com.frescuratotal.erp.inventory.view;
 
+import com.frescuratotal.erp.inventory.model.InspectionResult;
 import com.frescuratotal.erp.inventory.model.Lot;
+import com.frescuratotal.erp.inventory.model.QualityInspection;
 import com.frescuratotal.erp.inventory.model.QuarantineRecord;
 
 import java.math.BigDecimal;
@@ -75,6 +77,30 @@ public class InventoryView {
         quarantine.setRegisteredBy(readLine("Registered by: "));
 
         return quarantine;
+    }
+
+    public QualityInspection readNewInspection(){
+        QualityInspection inspection = new QualityInspection();
+
+        inspection.setLotId(readInt("Lot ID: "));
+
+        String answer = readLine("Approved? (y/n): ");
+
+        if (answer.equalsIgnoreCase("y")) {
+            inspection.setResult(InspectionResult.APPROVED);
+        } else {
+            inspection.setResult(InspectionResult.REJECTED);
+        }
+
+        inspection.setInspectorName(readLine("Inspector Name: "));
+
+        if (inspection.getResult() == InspectionResult.REJECTED){
+            inspection.setRejectionReason(readLine("Rejection Reason: "));
+        }
+
+        inspection.setNotes(readLine("Notes: "));
+
+        return inspection;
     }
 
     private int readInt(String prompt) {
