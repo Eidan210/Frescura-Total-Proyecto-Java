@@ -48,17 +48,8 @@ public class CustomerDaoImpl implements CustomerDao {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Customer customer = new Customer();
-                    customer.setId(rs.getInt("id_cliente"));
-                    customer.setName(rs.getString("nombre"));
-                    customer.setDocument(rs.getString("documento"));
-                    customer.setEmail(rs.getString("email"));
-                    customer.setPhone(rs.getString("telefono"));
-                    customer.setAddress(rs.getString("direccion"));
-                    customer.setType(CustomerType.fromId(rs.getInt("id_tipo")));
-                    customer.setRegistrationDate(rs.getTimestamp("fecha_registro").toLocalDateTime());
 
-                    return Optional.of(customer);
+                    return Optional.of(mapCustomer(rs));
                 }
                 return Optional.empty();
             }
@@ -71,7 +62,27 @@ public class CustomerDaoImpl implements CustomerDao {
 
     @Override
     public Optional<Customer> findByDocument(String document) {
-        return Optional.empty();
+        String sql = "SELECT * FROM clientes WHERE documento = ?";
+
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setString(1,document);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+
+                    return Optional.of(mapCustomer(rs));
+                }
+                return Optional.empty();
+            }
+
+        }catch(SQLException e){
+            throw new RuntimeException("Error searching customer ",e);
+        }
+
+
     }
 
     @Override
@@ -87,5 +98,20 @@ public class CustomerDaoImpl implements CustomerDao {
     @Override
     public boolean delete(int id) {
         return false;
+    }
+
+    private Customer mapCustomer(ResultSet rs) throws SQLException {
+
+        Customer customer = new Customer();
+        customer.setId(rs.getInt("id_cliente"));
+        customer.setName(rs.getString("nombre"));
+        customer.setDocument(rs.getString("documento"));
+        customer.setEmail(rs.getString("email"));
+        customer.setPhone(rs.getString("telefono"));
+        customer.setAddress(rs.getString("direccion"));
+        customer.setType(CustomerType.fromId(rs.getInt("id_tipo")));
+        customer.setRegistrationDate(rs.getTimestamp("fecha_registro").toLocalDateTime());
+
+        return customer;
     }
 }
