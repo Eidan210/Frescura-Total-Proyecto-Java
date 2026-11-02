@@ -64,7 +64,10 @@ public class InventoryController {
                         view.showMessage("Error: " + e.getMessage());
                     }
                 }
-                case 7 -> view.showMessage("Coming soon");
+                case 7 -> {
+                    ExpirationCheckResult result = service.runExpirationCheck();
+                    view.showMessage("Expiration check done: " + result.nearExpiry() + " lot(s) near expiry, " + result.expired() + " lot(s) expired.");;
+                }
                 case 8 -> view.showMessage("Coming soon");
                 case 9 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");

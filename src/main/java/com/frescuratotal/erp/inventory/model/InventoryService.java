@@ -60,6 +60,31 @@ public class InventoryService {
         lotDao.updateStatus(lot.getId(),LotStatus.IN_QUARANTINE);
     }
 
+    public ExpirationCheckResult runExpirationCheck() {
+        LocalDate today = LocalDate.now();
+        LocalDate limit = today.plusDays(7);
+
+        int nearExpiry = 0;
+        int expired = 0;
+        for (Lot lot : lotDao.findAll()) {
+            if (lot.getQuantity().compareTo(BigDecimal.ZERO) <= 0
+                    || lot.getStatusId() == LotStatus.IN_QUARANTINE.getId()
+                    || lot.getStatusId() == LotStatus.EXPIRED.getId()
+                    || lot.getExpirationDate().isAfter(limit)) {
+                continue;
+            }
+
+            if(lot.getExpirationDate().isBefore(today)){
+                lotDao.updateStatus(lot.getId(),LotStatus.EXPIRED);
+                expired++;
+            } else if(lot.getStatusId() == LotStatus.AVAILABLE.getId()){
+                lotDao.updateStatus(lot.getId(),LotStatus.NEAR_EXPIRY);
+                nearExpiry++;
+            }
+        }
+        return new ExpirationCheckResult(nearExpiry, expired);
+    }
+
     public void inspectLot(QualityInspection inspection) {
         Lot lot = lotDao.findById(inspection.getLotId());
 
