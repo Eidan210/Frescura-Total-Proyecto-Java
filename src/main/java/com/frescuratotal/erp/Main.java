@@ -4,6 +4,10 @@ import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.inventory.controller.InventoryController;
 import com.frescuratotal.erp.inventory.model.*;
 import com.frescuratotal.erp.inventory.view.InventoryView;
+import com.frescuratotal.erp.sales.controller.SalesController;
+import com.frescuratotal.erp.sales.model.CustomerDaoImpl;
+import com.frescuratotal.erp.sales.model.SaleService;
+import com.frescuratotal.erp.sales.view.SalesView;
 import com.frescuratotal.erp.suppliers.controller.SupplierController;
 import com.frescuratotal.erp.suppliers.model.SupplierDaoImpl;
 import com.frescuratotal.erp.suppliers.view.SupplierView;
@@ -52,7 +56,8 @@ public class Main {
                     break;
                 case 2:
                     // Sales module
-                    System.out.println("Coming soon");
+                    new SalesController(new SalesView(sc), new CustomerDaoImpl(),
+                            new ProductDaoImpl(), new SaleService()).start();
                     break;
                 case 3:
                     // Suppliers module
