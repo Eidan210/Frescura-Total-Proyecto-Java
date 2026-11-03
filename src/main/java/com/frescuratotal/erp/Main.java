@@ -1,6 +1,9 @@
 package com.frescuratotal.erp;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
+import com.frescuratotal.erp.inventory.controller.InventoryController;
+import com.frescuratotal.erp.inventory.model.*;
+import com.frescuratotal.erp.inventory.view.InventoryView;
 import com.frescuratotal.erp.suppliers.controller.SupplierController;
 import com.frescuratotal.erp.suppliers.model.SupplierDaoImpl;
 import com.frescuratotal.erp.suppliers.view.SupplierView;
@@ -37,12 +40,15 @@ public class Main {
             // 2. Read the user's option
             System.out.print("Option: ");
             option = sc.nextInt();
+            sc.nextLine();
 
             // 3. Decide what to do
             switch (option) {
                 case 1:
                     // Inventory module
-                    System.out.println("Coming soon");
+                    LotDao lotDao = new LotDaoImpl();
+                    new InventoryController(new InventoryView(sc), lotDao,
+                            new InventoryService(lotDao, new ProductDaoImpl(), new SupplierDaoImpl(), new QualityDaoImpl())).start();
                     break;
                 case 2:
                     // Sales module
