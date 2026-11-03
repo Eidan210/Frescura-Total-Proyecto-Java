@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+
 public class SaleService {
     private final LotDao lotDao = new LotDaoImpl();
 
@@ -74,9 +75,35 @@ public class SaleService {
         BigDecimal lineTotal = base.add(taxAmount);
         saleDetail.setLineTotal(lineTotal);
 
+    }
 
+    private void calculateTotals(Sale sale) {
+        BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+        BigDecimal totalTax = BigDecimal.ZERO;
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for( SaleDetail detail : sale.getSaleDetails()){
+
+            subtotal = subtotal.add(detail.getSubtotal());
+
+            totalDiscount = totalDiscount.add(detail.getDiscountAmount());
+
+            totalTax = totalTax.add(detail.getTaxAmount());
+
+            totalAmount = totalAmount.add(detail.getLineTotal());
+
+
+        }
+
+        sale.setSubtotal(subtotal);
+        sale.setTotalDiscount(totalDiscount);
+        sale.setTotalTax(totalTax);
+        sale.setTotalAmount(totalAmount);
 
     }
+
+
 
 
 }
