@@ -4,9 +4,17 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class CodeGenerator {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmssSSS");
+
     public static String generateLotNumber(){
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmssSSS");
-        return "LOT-" + now.format(formatter);
+        return "LOT-" + LocalDateTime.now().format(FORMATTER);
+    }
+
+    public static String generateSaleNumber() {
+        return "SALE-" + LocalDateTime.now().format(FORMATTER);
+    }
+
+    public static String generateInvoiceNumber() {
+        return "FT-" + LocalDateTime.now().format(FORMATTER);
     }
 }
