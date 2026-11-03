@@ -4,6 +4,7 @@ import com.frescuratotal.erp.common.DatabaseConnection;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,20 +31,20 @@ public class LotDaoImpl implements LotDao {
     @Override
     public List<Lot> findAvailableLots(int productId) {
         String sql = """
-                    SELECT *
-                    FROM lotes_inventario
-                    WHERE id_producto = ? AND id_estado IN (1,2) AND cantidad > 0
-                    ORDER BY fecha_vencimiento ASC""";
+                SELECT *
+                FROM lotes_inventario
+                WHERE id_producto = ? AND id_estado IN (1,2) AND cantidad > 0
+                ORDER BY fecha_vencimiento ASC""";
 
         List<Lot> lots = new ArrayList<>();
 
         Connection conn = DatabaseConnection.getInstance().getConnection();
 
-        try(PreparedStatement ps = conn.prepareStatement(sql)){
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, productId);
 
-            try (ResultSet rs = ps.executeQuery()){
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Lot lot = new Lot();
 
@@ -65,8 +66,8 @@ public class LotDaoImpl implements LotDao {
                 }
             }
 
-        } catch(SQLException e){
-            throw new RuntimeException("Error trying to find available lots",e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error trying to find available lots", e);
         }
 
         return lots;
@@ -77,15 +78,15 @@ public class LotDaoImpl implements LotDao {
         String sql = "UPDATE lotes_inventario SET cantidad = cantidad - ? WHERE id_lote = ?";
 
         Connection conn = DatabaseConnection.getInstance().getConnection();
-        try(PreparedStatement ps = conn.prepareStatement(sql)){
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setBigDecimal(1,amount);
-            ps.setInt(2,lotId);
+            ps.setBigDecimal(1, amount);
+            ps.setInt(2, lotId);
 
             ps.executeUpdate();
 
-        }catch(SQLException e){
-            throw new RuntimeException("Error decreasing lot quantity ",e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error decreasing lot quantity ", e);
         }
 
     }
@@ -100,7 +101,7 @@ public class LotDaoImpl implements LotDao {
                 """;
         Connection conn = DatabaseConnection.getInstance().getConnection();
 
-        try(PreparedStatement ps = conn.prepareStatement(sql)){
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, lot.getLotNumber());
             ps.setInt(2, lot.getProductId());
             ps.setInt(3, lot.getSupplierId());
@@ -115,8 +116,8 @@ public class LotDaoImpl implements LotDao {
 
             ps.executeUpdate();
 
-        }catch(SQLException e){
-            throw new RuntimeException("Error saving lot "+lot,e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error saving lot " + lot, e);
         }
     }
 
@@ -126,16 +127,16 @@ public class LotDaoImpl implements LotDao {
                 SELECT * FROM lotes_inventario WHERE id_lote = ?
                 """;
         Connection conn = DatabaseConnection.getInstance().getConnection();
-        try(PreparedStatement ps = conn.prepareStatement(sql)){
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, lotId);
-            try (ResultSet rs = ps.executeQuery()){
-                if  (rs.next()) {
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
                     return mapRowToLot(rs);
                 }
                 return null;
             }
-        }catch(SQLException e){
-            throw new RuntimeException("Error trying to find lot by id "+lotId,e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error trying to find lot by id " + lotId, e);
         }
     }
 
@@ -147,14 +148,14 @@ public class LotDaoImpl implements LotDao {
 
         Connection conn = DatabaseConnection.getInstance().getConnection();
 
-        try(PreparedStatement ps = conn.prepareStatement(sql)){
-            try(ResultSet rs = ps.executeQuery()){
-                while(rs.next()){
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
                     lots.add(mapRowToLot(rs));
                 }
             }
-        }catch (SQLException e){
-            throw new RuntimeException("Error trying to find all lots",e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error trying to find all lots", e);
         }
         return lots;
     }
@@ -164,13 +165,81 @@ public class LotDaoImpl implements LotDao {
         String sql = "UPDATE lotes_inventario SET id_estado = ? WHERE id_lote = ?";
 
         Connection conn = DatabaseConnection.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql)){
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, status.getId());
             ps.setInt(2, lotId);
 
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error trying to update the status: "+lotId, e);
+            throw new RuntimeException("Error trying to update the status: " + lotId, e);
         }
+    }
+
+    @Override
+    public LotTrace findTrace(int lotId) {
+        String sql = """
+                SELECT l.numero_lote, l.cantidad, l.cantidad_inicial, l.id_estado, l.fecha_vencimiento,
+                       p.nombre AS producto_nombre,
+                       pr.nombre AS proveedor_nombre,
+                       pr.nit AS proveedor_nit
+                FROM lotes_inventario l
+                INNER JOIN productos p ON p.id_producto = l.id_producto
+                INNER JOIN proveedores pr ON pr.id_proveedor = l.id_proveedor
+                WHERE l.id_lote = ?
+                """;
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, lotId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new LotTrace(
+                            rs.getString("numero_lote"),
+                            rs.getString("producto_nombre"),
+                            rs.getString("proveedor_nombre"),
+                            rs.getString("proveedor_nit"),
+                            rs.getBigDecimal("cantidad"),
+                            rs.getBigDecimal("cantidad_inicial"),
+                            LotStatus.fromId(rs.getInt("id_estado")),
+                            rs.getDate("fecha_vencimiento").toLocalDate()
+                    );
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error tracing lot " + lotId, e);
+        }
+    }
+
+    @Override
+    public List<LotDelivery> findDeliveries(int lotId) {
+        String sql = """
+                SELECT v.numero_venta, v.fecha_venta, c.nombre AS cliente_nombre, c.documento, dv.cantidad_vendida
+                FROM detalles_venta dv
+                INNER JOIN ventas v ON v.id_venta = dv.id_venta
+                INNER JOIN clientes c ON c.id_cliente = v.id_cliente
+                WHERE dv.id_lote = ?
+                ORDER BY v.fecha_venta
+                """;
+
+        List<LotDelivery> deliveries = new ArrayList<>();
+
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, lotId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    deliveries.add(new LotDelivery(
+                            rs.getString("numero_venta"),
+                            rs.getTimestamp("fecha_venta").toLocalDateTime(),
+                            rs.getString("cliente_nombre"),
+                            rs.getString("documento"),
+                            rs.getBigDecimal("cantidad_vendida")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw  new RuntimeException("Error finding deliveries " + lotId, e);
+        }
+        return deliveries;
     }
 }

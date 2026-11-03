@@ -12,6 +12,7 @@ public interface LotDao {
     Lot findById(int lotId);
     List<Lot> findAll();
     void updateStatus(int lotId, LotStatus status);
-
+    LotTrace findTrace(int lotId);
+    List<LotDelivery> findDeliveries(int lotId);
 
 }

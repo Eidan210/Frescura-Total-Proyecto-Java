@@ -161,4 +161,34 @@ public class InventoryView {
         return line;
     }
 
+    public int readLotId() {
+        return readInt("Lot ID: ");
+    }
+
+    public void showTrace(LotTrace trace, List<LotDelivery> deliveries) {
+        System.out.println("=== Lot " + trace.lotNumber() + " ===");
+        System.out.println("Product:  " + trace.productName());
+        System.out.println("Supplier: " + trace.supplierName() + " (NIT " + trace.supplierNit() + ")");
+        System.out.println("Quantity: " + trace.quantity() + " of " + trace.initialQuantity()
+                + " | Status: " + trace.status()
+                + " | Expires: " + trace.expirationDate());
+
+        System.out.println();
+        System.out.println("Customers who received this lot:");
+
+        if (deliveries.isEmpty()) {
+            System.out.println("This lot has not been sold yet.");
+            return;
+        }
+
+        System.out.printf("%-12s %-20s %-25s %-15s %-10s%n",
+                "Sale", "Date", "Customer", "Document", "Quantity");
+
+        for (LotDelivery d : deliveries) {
+            System.out.printf("%-12s %-20s %-25s %-15s %-10s%n",
+                    d.saleNumber(), d.saleDate(), d.customerName(),
+                    d.customerDocument(), d.quantity());
+        }
+    }
+
 }

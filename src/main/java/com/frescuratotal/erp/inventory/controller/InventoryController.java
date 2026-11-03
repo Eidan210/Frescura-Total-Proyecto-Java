@@ -3,6 +3,8 @@ package com.frescuratotal.erp.inventory.controller;
 import com.frescuratotal.erp.inventory.model.*;
 import com.frescuratotal.erp.inventory.view.InventoryView;
 
+import java.util.List;
+
 public class InventoryController {
     private final InventoryView view;
     private final LotDao lotDao;
@@ -68,7 +70,16 @@ public class InventoryController {
                     ExpirationCheckResult result = service.runExpirationCheck();
                     view.showMessage("Expiration check done: " + result.nearExpiry() + " lot(s) near expiry, " + result.expired() + " lot(s) expired.");;
                 }
-                case 8 -> view.showMessage("Coming soon");
+                case 8 -> {
+                    int lotId = view.readLotId();
+                    LotTrace trace = lotDao.findTrace(lotId);
+                    if (trace == null) {
+                        view.showMessage("Lot: " + lotId + " does not exist.");
+                    } else {
+                        List<LotDelivery> deliveries = lotDao.findDeliveries(lotId);
+                        view.showTrace(trace, deliveries);
+                    }
+                }
                 case 9 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
