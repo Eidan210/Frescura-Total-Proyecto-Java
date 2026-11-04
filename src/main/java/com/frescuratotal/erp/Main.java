@@ -4,8 +4,16 @@ import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.inventory.controller.InventoryController;
 import com.frescuratotal.erp.inventory.model.*;
 import com.frescuratotal.erp.inventory.view.InventoryView;
+import com.frescuratotal.erp.logistics.Dao.Impl.DeliveryAssignmentDaoimpl;
+import com.frescuratotal.erp.logistics.Dao.Impl.DeliveryRouteDaoimpl;
+import com.frescuratotal.erp.logistics.Dao.Impl.DriverDaoimpl;
+import com.frescuratotal.erp.logistics.Dao.Impl.RouteSaleDaoimpl;
+import com.frescuratotal.erp.logistics.Dao.Impl.VehicleDaoImpl;
+import com.frescuratotal.erp.logistics.controller.LogisticsController;
+import com.frescuratotal.erp.logistics.view.LogisticsView;
 import com.frescuratotal.erp.sales.controller.SalesController;
 import com.frescuratotal.erp.sales.model.CustomerDaoImpl;
+import com.frescuratotal.erp.sales.model.SaleDaoImpl;
 import com.frescuratotal.erp.sales.model.SaleService;
 import com.frescuratotal.erp.sales.view.SalesView;
 import com.frescuratotal.erp.suppliers.controller.SupplierController;
@@ -64,8 +72,10 @@ public class Main {
                     new SupplierController(new SupplierView(sc), new SupplierDaoImpl()).start();
                     break;
                 case 4:
-                    // logistics module
-                    System.out.println("Coming soon");
+
+                    new LogisticsController(new LogisticsView(sc), new SaleDaoImpl(), new CustomerDaoImpl(),
+                            new DeliveryRouteDaoimpl(), new DeliveryAssignmentDaoimpl(), new RouteSaleDaoimpl(),
+                            new VehicleDaoImpl(), new DriverDaoimpl()).start();
                     break;
                 case 5:
                     // Exit
