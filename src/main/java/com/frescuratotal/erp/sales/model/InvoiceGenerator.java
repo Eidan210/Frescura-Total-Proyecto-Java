@@ -8,9 +8,11 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import javax.imageio.ImageIO;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -24,7 +26,9 @@ import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -35,12 +39,27 @@ public class InvoiceGenerator {
     private static final String OUTPUT_FOLDER = "invoices";
     private static final String DIAN_QR_URL = "https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey=";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter SHORT_DATE = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH);
     private static final NumberFormat MONEY = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
 
-    private static final int WIDTH = 1000;
-    private static final int MARGIN = 50;
-    private static final int ROW_HEIGHT = 28;
-    private static final int QR_SIZE = 170;
+    // Page size (A4 proportion) and layout
+    private static final int WIDTH = 1240;
+    private static final int MIN_HEIGHT = 1754;
+    private static final int MARGIN = 70;
+    private static final int ROW_HEIGHT = 58;
+    private static final int QR_SIZE = 200;
+
+    // Colors of the Frescura Total brand
+    private static final Color GREEN = new Color(30, 77, 43);
+    private static final Color LIGHT_GREEN = new Color(240, 245, 238);
+    private static final Color GOLD = new Color(196, 154, 66);
+    private static final Color ORANGE = new Color(194, 94, 32);
+    private static final Color TEXT = new Color(33, 37, 41);
+    private static final Color GRAY = new Color(108, 117, 125);
+    private static final Color LINE = new Color(214, 219, 212);
+
+    // Times New Roman when the computer has it; a similar serif font if not
+    private static final String FONT = pickFont("Times New Roman", "Liberation Serif", "Serif");
 
     private final ProductDao productDao;
 
@@ -76,125 +95,244 @@ public class InvoiceGenerator {
     /** Draws the invoice and saves it as invoices/<invoice number>.png */
     public Path generateImage(Invoice invoice, CompanyInfo company) {
         Sale sale = invoice.getSale();
-        int rows = sale.getSaleDetails().size();
-        int height = 560 + rows * ROW_HEIGHT + QR_SIZE;
+        int height = Math.max(MIN_HEIGHT, 1080 + sale.getSaleDetails().size() * ROW_HEIGHT);
 
         BufferedImage image = new BufferedImage(WIDTH, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, WIDTH, height);
-        g.setColor(Color.BLACK);
 
-        int y = drawHeader(g, invoice, company);
-        y = drawCustomer(g, sale, y);
-        y = drawDetails(g, sale, y);
-        y = drawTotals(g, invoice, y);
-        drawDianData(g, invoice, y);
+        drawHeader(g, invoice, company);
+        drawInfoBoxes(g, invoice, 290);
+        int y = drawDetails(g, sale, 520);
+        y = drawTotals(g, invoice, y + 40);
+        drawDianData(g, invoice, y + 50);
+        drawFooter(g, company, height);
 
         g.dispose();
         return save(image, invoice.getInvoiceNumber());
     }
 
-    private int drawHeader(Graphics2D g, Invoice invoice, CompanyInfo company) {
-        int y = MARGIN + 10;
-        g.setFont(new Font("SansSerif", Font.BOLD, 26));
-        g.drawString(company.getName(), MARGIN, y);
+    // ---------- Sections of the invoice ----------
 
-        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        g.drawString("NIT: " + company.getNit(), MARGIN, y += 26);
-        g.drawString(company.getAddress() + " - " + company.getCity(), MARGIN, y += 20);
-        g.drawString("Phone: " + company.getPhone() + "   Email: " + company.getEmail(), MARGIN, y += 20);
+    private void drawHeader(Graphics2D g, Invoice invoice, CompanyInfo company) {
+        // Green band with the company data
+        g.setColor(GREEN);
+        g.fillRect(0, 0, WIDTH, 220);
+        g.setColor(GOLD);
+        g.fillRect(0, 220, WIDTH, 8);
 
-        int right = WIDTH - MARGIN - 330;
-        g.setFont(new Font("SansSerif", Font.BOLD, 18));
-        g.drawString("ELECTRONIC SALES INVOICE", right, MARGIN + 10);
-        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        g.drawString("Invoice No.: " + invoice.getInvoiceNumber(), right, MARGIN + 36);
-        g.drawString("Issue date: " + invoice.getIssueDate().format(DATE_FORMAT), right, MARGIN + 56);
-        g.drawString("Sale No.: " + invoice.getSale().getSaleNumber(), right, MARGIN + 76);
+        g.setColor(Color.WHITE);
+        g.setFont(font(Font.BOLD, 46));
+        g.drawString(company.getName(), MARGIN, 95);
+        g.setFont(font(Font.ITALIC, 22));
+        g.drawString("Fresh food from the field to your table", MARGIN, 130);
+        g.setFont(font(Font.PLAIN, 20));
+        g.drawString("NIT " + company.getNit() + "   |   " + company.getAddress() + ", " + company.getCity(), MARGIN, 175);
 
-        y += 20;
-        g.drawLine(MARGIN, y, WIDTH - MARGIN, y);
-        return y + 30;
+        // White card with the invoice number
+        int cardX = WIDTH - MARGIN - 360;
+        g.setColor(Color.WHITE);
+        g.fillRoundRect(cardX, 45, 360, 135, 18, 18);
+        g.setColor(GREEN);
+        g.setFont(font(Font.BOLD, 20));
+        drawCentered(g, "ELECTRONIC SALES INVOICE", cardX, 360, 85);
+        g.setColor(TEXT);
+        g.setFont(font(Font.BOLD, 30));
+        drawCentered(g, invoice.getInvoiceNumber(), cardX, 360, 135);
+        g.setColor(GRAY);
+        g.setFont(font(Font.PLAIN, 17));
+        drawCentered(g, "Issued " + invoice.getIssueDate().format(DATE_FORMAT), cardX, 360, 165);
     }
 
-    private int drawCustomer(Graphics2D g, Sale sale, int y) {
+    private void drawInfoBoxes(Graphics2D g, Invoice invoice, int y) {
+        Sale sale = invoice.getSale();
         Customer customer = sale.getCustomer();
-        g.setFont(new Font("SansSerif", Font.BOLD, 15));
-        g.drawString("CUSTOMER", MARGIN, y);
-        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        g.drawString("Name: " + customer.getName(), MARGIN, y += 22);
-        g.drawString("Document: " + customer.getDocument()
-                + "   Type: " + customer.getType(), MARGIN, y += 20);
-        g.drawString("Address: " + customer.getAddress() + "   Phone: " + customer.getPhone(), MARGIN, y += 20);
-        y += 20;
-        g.drawLine(MARGIN, y, WIDTH - MARGIN, y);
-        return y + 30;
+        int boxWidth = (WIDTH - 2 * MARGIN - 30) / 2;
+
+        drawBox(g, "BILLED TO", MARGIN, y, boxWidth, 190, List.of(
+                customer.getName(),
+                "Document: " + customer.getDocument(),
+                "Customer type: " + (customer.getType() == CustomerType.WHOLESALE ? "Wholesale" : "Retail"),
+                text(customer.getAddress()) + "   " + text(customer.getPhone())));
+
+        drawBox(g, "SALE DETAILS", MARGIN + boxWidth + 30, y, boxWidth, 190, List.of(
+                "Sale No.: " + sale.getSaleNumber(),
+                "Date: " + invoice.getIssueDate().format(SHORT_DATE),
+                "Seller: " + text(sale.getRegisteredBy()),
+                "Payment: Cash / Transfer"));
     }
 
     private int drawDetails(Graphics2D g, Sale sale, int y) {
-        int[] columns = {MARGIN, 300, 450, 530, 650, 730, 840};
-        String[] titles = {"Product", "Lot", "Qty", "Unit price", "Disc.", "VAT", "Line total"};
+        int tableWidth = WIDTH - 2 * MARGIN;
+        // Column positions: product on the left, numbers aligned to the right edge of each column
+        int qtyRight = MARGIN + 600;
+        int priceRight = MARGIN + 770;
+        int discRight = MARGIN + 880;
+        int totalRight = MARGIN + tableWidth - 20;
 
-        g.setFont(new Font("SansSerif", Font.BOLD, 13));
-        for (int i = 0; i < titles.length; i++) {
-            g.drawString(titles[i], columns[i], y);
-        }
-        y += 8;
-        g.drawLine(MARGIN, y, WIDTH - MARGIN, y);
+        // Header row
+        g.setColor(GREEN);
+        g.fillRoundRect(MARGIN, y, tableWidth, 50, 12, 12);
+        g.setColor(Color.WHITE);
+        g.setFont(font(Font.BOLD, 20));
+        g.drawString("Product", MARGIN + 20, y + 33);
+        drawRight(g, "Qty", qtyRight, y + 33);
+        drawRight(g, "Unit price", priceRight, y + 33);
+        drawRight(g, "Disc.", discRight, y + 33);
+        drawRight(g, "Line total", totalRight, y + 33);
+        y += 50;
 
-        g.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        // One row per sale detail, with zebra colors
+        boolean shaded = false;
         for (SaleDetail detail : sale.getSaleDetails()) {
-            y += ROW_HEIGHT - 6;
-            g.drawString(productName(detail.getLot().getProductId()), columns[0], y);
-            g.drawString(detail.getLot().getLotNumber(), columns[1], y);
-            g.drawString(detail.getQuantitySold().toPlainString(), columns[2], y);
-            g.drawString(money(detail.getUnitPrice()), columns[3], y);
-            g.drawString(percent(detail.getDiscountApplied()), columns[4], y);
-            g.drawString(money(detail.getTaxAmount()), columns[5], y);
-            g.drawString(money(detail.getLineTotal()), columns[6], y);
-            y += 6;
+            if (shaded) {
+                g.setColor(LIGHT_GREEN);
+                g.fillRect(MARGIN, y, tableWidth, ROW_HEIGHT);
+            }
+            shaded = !shaded;
+
+            g.setColor(TEXT);
+            g.setFont(font(Font.BOLD, 20));
+            g.drawString(productName(detail.getLot().getProductId()), MARGIN + 20, y + 26);
+
+            g.setColor(GRAY);
+            g.setFont(font(Font.PLAIN, 16));
+            String lotInfo = "Lot " + detail.getLot().getLotNumber();
+            if (detail.getLot().getExpirationDate() != null) {
+                lotInfo += "  ·  expires " + detail.getLot().getExpirationDate();
+            }
+            g.drawString(lotInfo, MARGIN + 20, y + 48);
+
+            g.setColor(TEXT);
+            g.setFont(font(Font.PLAIN, 20));
+            drawRight(g, detail.getQuantitySold().stripTrailingZeros().toPlainString(), qtyRight, y + 36);
+            drawRight(g, money(detail.getUnitPrice()), priceRight, y + 36);
+
+            boolean hasDiscount = detail.getDiscountApplied().compareTo(BigDecimal.ZERO) > 0;
+            g.setColor(hasDiscount ? ORANGE : GRAY);
+            g.setFont(font(hasDiscount ? Font.BOLD : Font.PLAIN, 20));
+            drawRight(g, percent(detail.getDiscountApplied()), discRight, y + 36);
+
+            g.setColor(TEXT);
+            g.setFont(font(Font.BOLD, 20));
+            drawRight(g, money(detail.getLineTotal()), totalRight, y + 36);
+            y += ROW_HEIGHT;
         }
-        y += 14;
-        g.drawLine(MARGIN, y, WIDTH - MARGIN, y);
-        return y + 30;
+
+        g.setColor(LINE);
+        g.setStroke(new BasicStroke(2));
+        g.drawLine(MARGIN, y, MARGIN + tableWidth, y);
+        return y;
     }
 
     private int drawTotals(Graphics2D g, Invoice invoice, int y) {
-        int labelX = WIDTH - MARGIN - 330;
-        int valueX = WIDTH - MARGIN - 150;
+        int boxWidth = 430;
+        int boxX = WIDTH - MARGIN - boxWidth;
+        int labelX = boxX + 25;
+        int valueRight = boxX + boxWidth - 25;
 
-        g.setFont(new Font("SansSerif", Font.PLAIN, 15));
-        g.drawString("Subtotal:", labelX, y);
-        g.drawString(money(invoice.getSubtotal()), valueX, y);
-        g.drawString("Discount:", labelX, y += 24);
-        g.drawString("- " + money(invoice.getTotalDiscount()), valueX, y);
-        g.drawString("VAT (19%):", labelX, y += 24);
-        g.drawString(money(invoice.getTaxAmount()), valueX, y);
+        // Thank-you note on the left
+        g.setColor(GREEN);
+        g.setFont(font(Font.ITALIC, 26));
+        g.drawString("Thank you for your purchase!", MARGIN, y + 40);
+        g.setColor(GRAY);
+        g.setFont(font(Font.PLAIN, 17));
+        g.drawString("Products marked in orange had a near-expiry discount.", MARGIN, y + 72);
+        g.drawString("VAT is calculated after discounts.", MARGIN, y + 96);
 
-        g.setFont(new Font("SansSerif", Font.BOLD, 18));
-        g.drawString("TOTAL:", labelX, y += 32);
-        g.drawString(money(invoice.getTotalAmount()), valueX, y);
-        return y + 40;
+        g.setColor(LIGHT_GREEN);
+        g.fillRoundRect(boxX, y, boxWidth, 210, 16, 16);
+
+        g.setFont(font(Font.PLAIN, 21));
+        g.setColor(TEXT);
+        g.drawString("Subtotal", labelX, y + 42);
+        drawRight(g, money(invoice.getSubtotal()), valueRight, y + 42);
+
+        g.setColor(ORANGE);
+        g.drawString("Discount", labelX, y + 82);
+        drawRight(g, "- " + money(invoice.getTotalDiscount()), valueRight, y + 82);
+
+        g.setColor(TEXT);
+        g.drawString("VAT (19%)", labelX, y + 122);
+        drawRight(g, money(invoice.getTaxAmount()), valueRight, y + 122);
+
+        // Total in a green bar
+        g.setColor(GREEN);
+        g.fillRoundRect(boxX, y + 145, boxWidth, 65, 16, 16);
+        g.setColor(Color.WHITE);
+        g.setFont(font(Font.BOLD, 26));
+        g.drawString("TOTAL", labelX, y + 188);
+        drawRight(g, money(invoice.getTotalAmount()), valueRight, y + 188);
+
+        return y + 210;
     }
 
     private void drawDianData(Graphics2D g, Invoice invoice, int y) {
-        g.drawImage(createQr(invoice.getQrLink()), MARGIN, y, null);
+        int boxWidth = WIDTH - 2 * MARGIN;
+        g.setColor(LINE);
+        g.setStroke(new BasicStroke(2));
+        g.drawRoundRect(MARGIN, y, boxWidth, QR_SIZE + 40, 16, 16);
 
-        int textX = MARGIN + QR_SIZE + 20;
-        g.setFont(new Font("SansSerif", Font.BOLD, 14));
-        g.drawString("CUFE:", textX, y + 20);
+        g.drawImage(createQr(invoice.getQrLink()), MARGIN + 20, y + 20, null);
+
+        int textX = MARGIN + QR_SIZE + 50;
+        g.setColor(GREEN);
+        g.setFont(font(Font.BOLD, 22));
+        g.drawString("CUFE (Unique Electronic Invoice Code)", textX, y + 55);
 
         // The CUFE has 96 characters: split it in two lines so it fits
-        g.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        g.setColor(TEXT);
+        g.setFont(font(Font.PLAIN, 19));
         String cufe = invoice.getCufe();
-        g.drawString(cufe.substring(0, 48), textX, y + 42);
-        g.drawString(cufe.substring(48), textX, y + 60);
+        g.drawString(cufe.substring(0, 48), textX, y + 92);
+        g.drawString(cufe.substring(48), textX, y + 120);
 
-        g.setFont(new Font("SansSerif", Font.ITALIC, 12));
-        g.drawString("Scan the QR code to validate this invoice (simulated DIAN validation).", textX, y + 95);
-        g.drawString("Simulated electronic invoice - academic project.", textX, y + 115);
+        g.setColor(GRAY);
+        g.setFont(font(Font.ITALIC, 17));
+        g.drawString("Scan the QR code to validate this invoice on the DIAN website (simulated).", textX, y + 165);
+        g.drawString("Simulated electronic invoice for an academic project.", textX, y + 190);
+    }
+
+    private void drawFooter(Graphics2D g, CompanyInfo company, int height) {
+        g.setColor(GOLD);
+        g.fillRect(0, height - 78, WIDTH, 6);
+        g.setColor(GREEN);
+        g.fillRect(0, height - 72, WIDTH, 72);
+        g.setColor(Color.WHITE);
+        g.setFont(font(Font.PLAIN, 18));
+        drawCentered(g, text(company.getPhone()) + "   |   " + text(company.getEmail())
+                + "   |   " + text(company.getCity()) + ", Colombia", 0, WIDTH, height - 30);
+    }
+
+    // ---------- Small drawing helpers ----------
+
+    private void drawBox(Graphics2D g, String title, int x, int y, int width, int height, List<String> lines) {
+        g.setColor(LIGHT_GREEN);
+        g.fillRoundRect(x, y, width, height, 16, 16);
+        g.setColor(GREEN);
+        g.fillRoundRect(x, y, 8, height, 8, 8);
+
+        g.setFont(font(Font.BOLD, 18));
+        g.drawString(title, x + 30, y + 38);
+
+        int lineY = y + 75;
+        for (int i = 0; i < lines.size(); i++) {
+            g.setColor(i == 0 ? TEXT : GRAY);
+            g.setFont(font(i == 0 ? Font.BOLD : Font.PLAIN, i == 0 ? 23 : 19));
+            g.drawString(lines.get(i), x + 30, lineY);
+            lineY += i == 0 ? 34 : 28;
+        }
+    }
+
+    private void drawRight(Graphics2D g, String text, int rightX, int y) {
+        g.drawString(text, rightX - g.getFontMetrics().stringWidth(text), y);
+    }
+
+    private void drawCentered(Graphics2D g, String text, int x, int width, int y) {
+        g.drawString(text, x + (width - g.getFontMetrics().stringWidth(text)) / 2, y);
     }
 
     private BufferedImage createQr(String content) {
@@ -203,7 +341,7 @@ public class InvoiceGenerator {
             BufferedImage qr = new BufferedImage(QR_SIZE, QR_SIZE, BufferedImage.TYPE_INT_RGB);
             for (int x = 0; x < QR_SIZE; x++) {
                 for (int y = 0; y < QR_SIZE; y++) {
-                    qr.setRGB(x, y, matrix.get(x, y) ? Color.BLACK.getRGB() : Color.WHITE.getRGB());
+                    qr.setRGB(x, y, matrix.get(x, y) ? TEXT.getRGB() : Color.WHITE.getRGB());
                 }
             }
             return qr;
@@ -227,6 +365,25 @@ public class InvoiceGenerator {
     private String productName(int productId) {
         Product product = productDao.findById(productId);
         return product != null ? product.getName() : "Product #" + productId;
+    }
+
+    private Font font(int style, int size) {
+        return new Font(FONT, style, size);
+    }
+
+    private static String pickFont(String... options) {
+        List<String> installed = Arrays.asList(
+                GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
+        for (String option : options) {
+            if (installed.contains(option)) {
+                return option;
+            }
+        }
+        return Font.SERIF;
+    }
+
+    private String text(String value) {
+        return value != null ? value : "";
     }
 
     private String money(BigDecimal value) {
