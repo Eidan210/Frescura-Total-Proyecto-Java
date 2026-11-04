@@ -1,8 +1,14 @@
+-- =============================================
+-- SECCIÓN 1: DDL (estructura de la base de datos)
+-- =============================================
+
 -- *** Script Proyecto ERP Frescura Total **
 
 -- Script de Creación de Base de Datos: erp_frescura_total
 -- El estudiante puede agregar elementos a la base de datos si considera que hace falta la modelo actual
 
+
+SET NAMES utf8mb4;
 
 DROP DATABASE IF EXISTS erp_frescura_total;
 CREATE DATABASE erp_frescura_total CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -284,7 +290,9 @@ INDEX idx_ruta (id_ruta),
 INDEX idx_venta (id_venta)
 ) ENGINE=InnoDB;
 
--- DATOS INICIALES (SOLO CATÁLOGOS ESENCIALES)
+-- =============================================
+-- SECCIÓN 2: DML (datos de prueba)
+-- =============================================
 
 INSERT INTO estados_lote (nombre, descripcion) VALUES
 ('Disponible', 'Lote disponible para venta'),

@@ -218,6 +218,7 @@ public class LotDaoImpl implements LotDao {
                 INNER JOIN ventas v ON v.id_venta = dv.id_venta
                 INNER JOIN clientes c ON c.id_cliente = v.id_cliente
                 WHERE dv.id_lote = ?
+                  AND v.id_estado <> (SELECT id_estado FROM estados_venta WHERE nombre = 'Cancelada')
                 ORDER BY v.fecha_venta
                 """;
 

@@ -1,6 +1,7 @@
 package com.frescuratotal.erp;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
+import com.frescuratotal.erp.common.util.InputUtil;
 import com.frescuratotal.erp.inventory.controller.InventoryController;
 import com.frescuratotal.erp.inventory.model.*;
 import com.frescuratotal.erp.inventory.view.InventoryView;
@@ -50,9 +51,7 @@ public class Main {
                     "5. Exit");
 
             // 2. Read the user's option
-            System.out.print("Option: ");
-            option = sc.nextInt();
-            sc.nextLine();
+            option = InputUtil.readInt(sc, "Option: ");
 
             // 3. Decide what to do
             switch (option) {
