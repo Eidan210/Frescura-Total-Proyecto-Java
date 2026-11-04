@@ -19,7 +19,8 @@ public class SupplierView {
                 "3. Find supplier by ID\n" +
                 "4. Update supplier\n" +
                 "5. Delete supplier\n" +
-                "6. Back");
+                "6. Search supplier by name\n" +
+                "7. Back");
         return readInt("Option: ");
     }
 
@@ -28,7 +29,7 @@ public class SupplierView {
         s.setName(readRequired("Name: "));
         s.setNit(readRequired("NIT: "));
         s.setContactPerson(readLine("Contact person: "));
-        s.setEmail(readLine("Email: "));
+        s.setEmail(readRequired("Email: "));
         s.setPhone(readLine("Phone: "));
         s.setAddress(readLine("Address: "));
         s.setActive(1);
@@ -46,6 +47,10 @@ public class SupplierView {
         s.setAddress(readOrKeep("Address", s.getAddress()));
         String active = readOrKeep("Active (1 = yes, 0 = no)", String.valueOf(s.getActive()));
         s.setActive("0".equals(active) ? 0 : 1);
+    }
+
+    public String readSearchText() {
+        return readLine("Name contains: ");
     }
 
     public int readId() {
@@ -70,7 +75,7 @@ public class SupplierView {
 
     public void showSuppliers(List<Supplier> suppliers) {
         if (suppliers.isEmpty()) {
-            showMessage("No suppliers registered.");
+            showMessage("No suppliers found.");
             return;
         }
         System.out.printf("%-5s %-30s %-15s %-20s %-6s%n", "ID", "Name", "NIT", "Phone", "Active");

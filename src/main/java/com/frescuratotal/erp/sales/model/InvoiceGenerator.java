@@ -113,7 +113,8 @@ public class InvoiceGenerator {
     /** Draws the invoice and saves it as invoices/<invoice number>.png */
     public Path generateImage(Invoice invoice, CompanyInfo company) {
         Sale sale = invoice.getSale();
-        int height = Math.max(MIN_HEIGHT, 1080 + sale.getSaleDetails().size() * ROW_HEIGHT);
+        // Everything but the rows: sections above the table, totals, DIAN box and footer
+        int height = Math.max(MIN_HEIGHT, 1270 + sale.getSaleDetails().size() * ROW_HEIGHT);
 
         BufferedImage image = new BufferedImage(WIDTH, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
@@ -214,7 +215,7 @@ public class InvoiceGenerator {
 
             g.setColor(TEXT);
             g.setFont(font(Font.BOLD, 20));
-            g.drawString(productName(detail.getLot().getProductId()), MARGIN + 20, y + 26);
+            g.drawString(fit(g, productName(detail.getLot().getProductId()), 520), MARGIN + 20, y + 26);
 
             g.setColor(GRAY);
             g.setFont(font(Font.PLAIN, 16));
@@ -340,9 +341,21 @@ public class InvoiceGenerator {
         for (int i = 0; i < lines.size(); i++) {
             g.setColor(i == 0 ? TEXT : GRAY);
             g.setFont(font(i == 0 ? Font.BOLD : Font.PLAIN, i == 0 ? 23 : 19));
-            g.drawString(lines.get(i), x + 30, lineY);
+            g.drawString(fit(g, lines.get(i), width - 50), x + 30, lineY);
             lineY += i == 0 ? 34 : 28;
         }
+    }
+
+    /** Cuts the text with "..." so it does not run over the next column. */
+    private String fit(Graphics2D g, String text, int maxWidth) {
+        if (g.getFontMetrics().stringWidth(text) <= maxWidth) {
+            return text;
+        }
+        String cut = text;
+        while (!cut.isEmpty() && g.getFontMetrics().stringWidth(cut + "...") > maxWidth) {
+            cut = cut.substring(0, cut.length() - 1);
+        }
+        return cut + "...";
     }
 
     private void drawRight(Graphics2D g, String text, int rightX, int y) {

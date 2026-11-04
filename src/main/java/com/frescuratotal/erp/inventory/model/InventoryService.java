@@ -1,10 +1,13 @@
 package com.frescuratotal.erp.inventory.model;
 
+import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.common.util.CodeGenerator;
+import com.frescuratotal.erp.common.util.InputUtil;
 import com.frescuratotal.erp.suppliers.model.SupplierDao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class InventoryService {
     private final LotDao lotDao;
@@ -26,16 +29,16 @@ public class InventoryService {
         if (supplierDao.findById(lot.getSupplierId()).isEmpty()) {
             throw new IllegalArgumentException("Supplier " + lot.getSupplierId() + " does not exist.");
         }
-        if (lot.getQuantity().compareTo(BigDecimal.ZERO) <= 0){
-            throw new IllegalArgumentException("Quantity must be greater than 0.");
-        }
+        InputUtil.requireAmount(lot.getQuantity(), "Quantity");
+        InputUtil.requireAmount(lot.getPurchasePrice(), "Purchase price");
+        InputUtil.requireAmount(lot.getSalePrice(), "Sale price");
         if (!lot.getExpirationDate().isAfter(LocalDate.now())){
             throw new IllegalArgumentException("Expiration date must be after today.");
         }
 
         lot.setLotNumber(CodeGenerator.generateLotNumber());
         lot.setInitialQuantity(lot.getQuantity());
-        lot.setStatusId(LotStatus.AVAILABLE.getId());
+        lot.setStatusId(LotStatus.forExpiration(lot.getExpirationDate()).getId());
         lotDao.save(lot);
         return lot;
     }
@@ -55,9 +58,16 @@ public class InventoryService {
             throw new IllegalArgumentException("Reason cannot be empty.");
         }
 
-        qualityDao.saveQuarantine(quarantine);
+        DatabaseConnection.getInstance().inTransaction(() -> {
+            qualityDao.saveQuarantine(quarantine);
+            lotDao.updateStatus(lot.getId(), LotStatus.IN_QUARANTINE);
+        });
+    }
 
-        lotDao.updateStatus(lot.getId(),LotStatus.IN_QUARANTINE);
+    public List<Lot> findLotsByStatus(LotStatus status) {
+        return lotDao.findAll().stream()
+                .filter(lot -> lot.getStatusId() == status.getId() && lot.getQuantity().compareTo(BigDecimal.ZERO) > 0)
+                .toList();
     }
 
     public ExpirationCheckResult runExpirationCheck() {
@@ -95,6 +105,9 @@ public class InventoryService {
         if (lot.getStatusId() != LotStatus.IN_QUARANTINE.getId()) {
             throw new IllegalArgumentException("Lot " + lot.getLotNumber() + " is not in quarantine.");
         }
+        if (lot.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Lot " + lot.getLotNumber() + " has no stock to inspect.");
+        }
 
         if (inspection.getInspectorName().isEmpty()){
             throw new IllegalArgumentException("Inspector name cannot be empty.");
@@ -104,23 +117,27 @@ public class InventoryService {
             throw new IllegalArgumentException("Reason cannot be empty.");
         }
 
-        int inspectionId = qualityDao.saveInspection(inspection);
+        LotStatus statusByDate = LotStatus.forExpiration(lot.getExpirationDate());
 
-
-        if (inspection.getResult() == InspectionResult.APPROVED) {
-            qualityDao.resolveQuarantine(inspection.getLotId(),"Approved by: "+inspection.getInspectorName());
-            lotDao.updateStatus(inspection.getLotId(), LotStatus.AVAILABLE);
+        if (inspection.getResult() == InspectionResult.APPROVED && statusByDate == LotStatus.EXPIRED) {
+            throw new IllegalArgumentException("Lot " + lot.getLotNumber() + " is expired: it can only be rejected.");
         }
 
-        if (inspection.getResult() == InspectionResult.REJECTED) {
-            WasteRecord waste = new WasteRecord(lot.getId(), inspectionId, lot.getQuantity(), inspection.getRejectionReason(), null, inspection.getInspectorName());
-            qualityDao.saveWaste(waste);
+        DatabaseConnection.getInstance().inTransaction(() -> {
+            int inspectionId = qualityDao.saveInspection(inspection);
 
-            lotDao.decreaseQuantity(lot.getId(), lot.getQuantity());
+            if (inspection.getResult() == InspectionResult.APPROVED) {
+                qualityDao.resolveQuarantine(inspection.getLotId(), "Approved by: " + inspection.getInspectorName());
+                lotDao.updateStatus(inspection.getLotId(), statusByDate);
+            }
 
-            qualityDao.resolveQuarantine(lot.getId(),"Rejected by: "+inspection.getInspectorName());
-
-        }
+            if (inspection.getResult() == InspectionResult.REJECTED) {
+                WasteRecord waste = new WasteRecord(lot.getId(), inspectionId, lot.getQuantity(), inspection.getRejectionReason(), null, inspection.getInspectorName());
+                qualityDao.saveWaste(waste);
+                lotDao.decreaseQuantity(lot.getId(), lot.getQuantity());
+                qualityDao.resolveQuarantine(lot.getId(), "Rejected by: " + inspection.getInspectorName());
+            }
+        });
     }
 
     public void registerWaste(WasteRecord waste) {
@@ -130,9 +147,7 @@ public class InventoryService {
             throw new IllegalArgumentException("Lot " + waste.getLotId() + " does not exist.");
         }
 
-        if (waste.getLostQuantity().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than 0.");
-        }
+        InputUtil.requireAmount(waste.getLostQuantity(), "Lost quantity");
 
         if (waste.getLostQuantity().compareTo(lot.getQuantity()) > 0) {
             throw new IllegalArgumentException("Lost quantity exceeds available stock (" + lot.getQuantity() + ").");
@@ -140,9 +155,11 @@ public class InventoryService {
         if (waste.getReason().isEmpty()) {
             throw new IllegalArgumentException("Reason cannot be empty.");
         }
-        qualityDao.saveWaste(waste);
-
-        lotDao.decreaseQuantity(lot.getId(), waste.getLostQuantity());
+        DatabaseConnection.getInstance().inTransaction(() -> {
+            // Stock first: it locks the lot, so two sessions queue here instead of deadlocking
+            lotDao.decreaseQuantity(lot.getId(), waste.getLostQuantity());
+            qualityDao.saveWaste(waste);
+        });
     }
 }
 

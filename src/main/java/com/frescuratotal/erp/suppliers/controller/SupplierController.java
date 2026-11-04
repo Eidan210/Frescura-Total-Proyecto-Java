@@ -25,10 +25,11 @@ public class SupplierController {
                 case 3 -> findById();
                 case 4 -> update();
                 case 5 -> delete();
-                case 6 -> view.showMessage("Returning to main menu...");
+                case 6 -> searchByName();
+                case 7 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
-        } while (option != 6);
+        } while (option != 7);
     }
 
     private void register() {
@@ -38,6 +39,13 @@ public class SupplierController {
 
     private void findById() {
         findSupplier().ifPresent(view::showSupplier);
+    }
+
+    private void searchByName() {
+        String text = view.readSearchText().toLowerCase();
+        view.showSuppliers(dao.findAll().stream()
+                .filter(supplier -> supplier.getName().toLowerCase().contains(text))
+                .toList());
     }
 
     private void update() {
@@ -52,7 +60,7 @@ public class SupplierController {
         Optional<Supplier> found = findSupplier();
         if (found.isEmpty()) return;
         view.showSupplier(found.get());
-        if (!view.confirm("Delete this supplier?")) {
+        if (!view.confirm("Delete this supplier and its product catalog?")) {
             view.showMessage("Deletion cancelled.");
             return;
         }

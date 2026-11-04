@@ -3,6 +3,7 @@ package com.frescuratotal.erp.sales.model;
 import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.common.exception.InsufficientStockException;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,10 +14,7 @@ import java.util.List;
 
 public class SaleDaoImpl implements SaleDao {
 
-    /**
-     * Saves the sale, its details and decreases each lot in ONE transaction:
-     * either everything is saved (commit) or nothing is (rollback).
-     */
+    /** Saves the sale, its details and decreases each lot. The caller owns the transaction. */
     @Override
     public boolean save(Sale sale) {
         String saleSql = """
@@ -30,15 +28,15 @@ public class SaleDaoImpl implements SaleDao {
                                             monto_impuesto, subtotal, total_linea)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""";
 
-        // "cantidad >= ?" protects us from selling more than the lot has right now
-        String lotSql = "UPDATE lotes_inventario SET cantidad = cantidad - ? WHERE id_lote = ? AND cantidad >= ?";
+        // The lot may have changed since it entered the cart: another sale, a quarantine or its date
+        String lotSql = """
+                UPDATE lotes_inventario SET cantidad = cantidad - ?
+                WHERE id_lote = ? AND cantidad >= ? AND id_estado IN (1,2) AND fecha_vencimiento >= CURDATE()""";
 
         Connection conn = DatabaseConnection.getInstance().getConnection();
 
         try {
-            conn.setAutoCommit(false); // 1. start the transaction
-
-            // 2. Save the sale and get the id that MySQL generated (AUTO_INCREMENT)
+            // 1. Save the sale and get the id that MySQL generated (AUTO_INCREMENT)
             try (PreparedStatement ps = conn.prepareStatement(saleSql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, sale.getSaleNumber());
                 ps.setInt(2, sale.getCustomer().getId());
@@ -57,7 +55,7 @@ public class SaleDaoImpl implements SaleDao {
                 }
             }
 
-            // 3. Save every detail and 4. decrease its lot
+            // 2. Save every detail and 3. decrease its lot
             try (PreparedStatement detailPs = conn.prepareStatement(detailSql);
                  PreparedStatement lotPs = conn.prepareStatement(lotSql)) {
 
@@ -79,22 +77,15 @@ public class SaleDaoImpl implements SaleDao {
                     lotPs.setBigDecimal(3, detail.getQuantitySold());
                     if (lotPs.executeUpdate() == 0) {
                         throw new InsufficientStockException(
-                                "Lot " + detail.getLot().getLotNumber() + " no longer has enough stock");
+                                "Lot " + detail.getLot().getLotNumber() + " is no longer available in that quantity");
                     }
                 }
             }
 
-            conn.commit(); // 5. everything worked: save it for real
             return true;
 
-        } catch (SQLException | RuntimeException e) {
-            rollback(conn); // something failed: undo everything
-            if (e instanceof RuntimeException runtimeException) {
-                throw runtimeException;
-            }
+        } catch (SQLException e) {
             throw new RuntimeException("Error saving sale ", e);
-        } finally {
-            restoreAutoCommit(conn);
         }
     }
 
@@ -152,19 +143,34 @@ public class SaleDaoImpl implements SaleDao {
         }
     }
 
-    private void rollback(Connection conn) {
-        try {
-            conn.rollback();
+    @Override
+    public boolean updateStatus(int saleId, SaleStatus expected, SaleStatus status) {
+        String sql = "UPDATE ventas SET id_estado = ? WHERE id_venta = ? AND id_estado = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, status.getId());
+            ps.setInt(2, saleId);
+            ps.setInt(3, expected.getId());
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            throw new RuntimeException("Error rolling back sale ", e);
+            throw new RuntimeException("Error updating sale status ", e);
         }
     }
 
-    private void restoreAutoCommit(Connection conn) {
-        try {
-            conn.setAutoCommit(true);
+    @Override
+    public BigDecimal findTotalQuantity(int saleId) {
+        String sql = "SELECT COALESCE(SUM(cantidad_vendida), 0) FROM detalles_venta WHERE id_venta = ?";
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, saleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getBigDecimal(1);
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Error restoring auto-commit ", e);
+            throw new RuntimeException("Error reading the quantity of sale " + saleId, e);
         }
     }
 }

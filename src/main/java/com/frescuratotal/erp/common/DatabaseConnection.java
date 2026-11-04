@@ -17,7 +17,7 @@ public class DatabaseConnection {
                     DatabaseConfig.getPassword()
             );
         }catch(SQLException e){
-            throw new RuntimeException("\"Could not connect to the database. Check that MySQL is running and the credentials in db.properties are correct\"", e);
+            throw new RuntimeException("Could not connect to the database. Check that MySQL is running and the credentials in db.properties are correct.", e);
         }
     }
 
@@ -30,5 +30,23 @@ public class DatabaseConnection {
 
     public Connection getConnection(){
         return connection;
+    }
+
+
+    public void inTransaction(Runnable work) {
+        try {
+            connection.setAutoCommit(false);
+            try {
+                work.run();
+                connection.commit();
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("The database transaction failed", e);
+        }
     }
 }

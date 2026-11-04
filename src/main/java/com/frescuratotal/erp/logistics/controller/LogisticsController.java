@@ -20,11 +20,13 @@ import com.frescuratotal.erp.sales.model.Sale;
 import com.frescuratotal.erp.sales.model.SaleDao;
 import com.frescuratotal.erp.sales.model.SaleStatus;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class LogisticsController {
@@ -68,6 +70,8 @@ public class LogisticsController {
                     case 9 -> view.showMessage("Returning to main menu...");
                     default -> view.showMessage("Invalid option");
                 }
+            } catch (NoSuchElementException e) {
+                throw e; // the input was closed: asking again would loop forever
             } catch (RuntimeException e) {
                 view.showMessage("The operation could not be completed: " + e.getMessage());
             }
@@ -99,7 +103,7 @@ public class LogisticsController {
         route.setRouteName(routeName);
         route.setCreatedBy(createdBy);
 
-        List<RouteSale> routeSales = selectSales(route);
+        List<RouteSale> routeSales = selectSales(route, vehicle);
         if (routeSales.isEmpty()) {
             view.showMessage("The route was not created because it has no sales.");
             return;
@@ -155,6 +159,10 @@ public class LogisticsController {
             view.showMessage("The route could not be created because the vehicle is not active.");
             return null;
         }
+        if (isInActiveRoute(assignmentDao.findAssignmentsByVehicle(box.get().getVehicleId()))) {
+            view.showMessage("The route could not be created because the vehicle is already in an active route.");
+            return null;
+        }
         return box.get();
     }
 
@@ -176,11 +184,15 @@ public class LogisticsController {
             view.showMessage("The route could not be created because the driver is not active.");
             return null;
         }
+        if (isInActiveRoute(assignmentDao.findAssignmentsByDriver(box.get().getDriverId()))) {
+            view.showMessage("The route could not be created because the driver is already in an active route.");
+            return null;
+        }
         return box.get();
     }
 
     /** Asks for sales until the user types 0. Rejected sales are reported and skipped. */
-    private List<RouteSale> selectSales(DeliveryRoute route) {
+    private List<RouteSale> selectSales(DeliveryRoute route, Vehicle vehicle) {
         List<RouteSale> routeSales = new ArrayList<>();
         List<Sale> sales = saleDao.findAll();
 
@@ -188,13 +200,13 @@ public class LogisticsController {
 
         int saleId = view.readSaleId();
         while (saleId != 0) {
-            addSaleToRoute(saleId, sales, route, routeSales);
+            addSaleToRoute(saleId, sales, route, routeSales, vehicle);
             saleId = view.readSaleId();
         }
         return routeSales;
     }
 
-    private void addSaleToRoute(int saleId, List<Sale> sales, DeliveryRoute route, List<RouteSale> routeSales) {
+    private void addSaleToRoute(int saleId, List<Sale> sales, DeliveryRoute route, List<RouteSale> routeSales, Vehicle vehicle) {
         Sale sale = findSale(saleId, sales);
         if (sale == null) {
             view.showMessage("Sale " + saleId + " does not exist.");
@@ -220,6 +232,16 @@ public class LogisticsController {
             return;
         }
 
+        BigDecimal load = saleDao.findTotalQuantity(saleId);
+        for (RouteSale selected : routeSales) {
+            load = load.add(saleDao.findTotalQuantity(selected.getSale().getId()));
+        }
+        if (load.compareTo(BigDecimal.valueOf(vehicle.getCapacity())) > 0) {
+            view.showMessage("Sale " + saleId + " does not fit: the load would be " + load
+                    + " and the vehicle capacity is " + vehicle.getCapacity() + ".");
+            return;
+        }
+
         RouteSale routeSale = new RouteSale();
         routeSale.setRoute(route);
         routeSale.setSale(sale);
@@ -241,6 +263,15 @@ public class LogisticsController {
     private boolean hasActiveRoute(int saleId) {
         for (RouteSale routeSale : routeSaleDao.findRouteSalesBySale(saleId)) {
             if (isRouteActive(routeSale.getRoute().getRouteId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isInActiveRoute(List<DeliveryAssignment> assignments) {
+        for (DeliveryAssignment assignment : assignments) {
+            if (isRouteActive(assignment.getRoute().getRouteId())) {
                 return true;
             }
         }

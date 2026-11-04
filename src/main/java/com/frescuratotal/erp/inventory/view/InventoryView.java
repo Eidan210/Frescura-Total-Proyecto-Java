@@ -25,7 +25,8 @@ public class InventoryView {
                 "6. Register waste\n" +
                 "7. Run expiration check\n" +
                 "8. Trace lot\n" +
-                "9. Back");
+                "9. List lots by status\n" +
+                "10. Back");
         return readInt("Option: ");
     }
 
@@ -82,6 +83,11 @@ public class InventoryView {
         inspection.setLotId(readInt("Lot ID: "));
 
         String answer = readLine("Approved? (y/n): ");
+        // A mistyped answer must not reject the whole lot
+        while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
+            System.out.println("Please answer y or n.");
+            answer = readLine("Approved? (y/n): ");
+        }
 
         if (answer.equalsIgnoreCase("y")) {
             inspection.setResult(InspectionResult.APPROVED);
@@ -159,6 +165,11 @@ public class InventoryView {
         System.out.print(prompt);
         String line = sc.nextLine().trim();
         return line;
+    }
+
+    public LotStatus readLotStatus() {
+        System.out.println("1. Available\n2. Near expiry\n3. Expired\n4. In quarantine");
+        return LotStatus.fromId(readInt("Status: "));
     }
 
     public int readLotId() {
