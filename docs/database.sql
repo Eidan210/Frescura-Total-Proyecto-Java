@@ -849,3 +849,20 @@ INSERT INTO detalles_venta (id_venta, id_lote, cantidad_vendida, precio_unitario
 INSERT INTO detalles_venta (id_venta, id_lote, cantidad_vendida, precio_unitario, descuento_aplicado, monto_descuento, tasa_impuesto, monto_impuesto, subtotal, total_linea) VALUES (49, 37, 40, 3405, 0, 0, 0.19, 25878, 136200, 162078);
 INSERT INTO detalles_venta (id_venta, id_lote, cantidad_vendida, precio_unitario, descuento_aplicado, monto_descuento, tasa_impuesto, monto_impuesto, subtotal, total_linea) VALUES (50, 46, 28, 6763, 0, 0, 0.19, 35979.16, 189364, 225343.16);
 INSERT INTO detalles_venta (id_venta, id_lote, cantidad_vendida, precio_unitario, descuento_aplicado, monto_descuento, tasa_impuesto, monto_impuesto, subtotal, total_linea) VALUES (50, 19, 64, 4635, 0, 0, 0.19, 56361.6, 296640, 353001.6);
+
+
+-- CONDUCTORES
+INSERT INTO conductores (nombre, numero_licencia, telefono, email) VALUES
+                                                                       ('Carlos Alberto Gómez', 'LIC-7482910', '3104567890', 'carlos.gomez@frescuratotal.com'),
+                                                                       ('Ana María Restrepo', 'LIC-8392019', '3112345678', 'ana.restrepo@frescuratotal.com'),
+                                                                       ('Jorge Enrique Pérez', 'LIC-9201928', '3128765432', 'jorge.perez@frescuratotal.com'),
+                                                                       ('Diana Marcela Silva', 'LIC-6382910', '3139876541', 'diana.silva@frescuratotal.com'),
+                                                                       ('Luis Fernando Morales', 'LIC-5492018', '3145678901', 'luis.morales@frescuratotal.com');
+
+-- VEHICULOS
+INSERT INTO vehiculos (placa, modelo, capacidad, estado) VALUES
+                                                             ('SXT-412', 'Chevrolet NHR 2023', 2500, 'Activo'),
+                                                             ('BOG-983', 'JAC HFC 2022', 3500, 'Activo'),
+                                                             ('MDC-204', 'Foton Aumark 2024', 4000, 'Activo'),
+                                                             ('CAL-715', 'Hino Dutro 2021', 3000, 'Activo'),
+                                                             ('BUC-556', 'Hyundai HD65 2020', 2800, 'Mantenimiento');
