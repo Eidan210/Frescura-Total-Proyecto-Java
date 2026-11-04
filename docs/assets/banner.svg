@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 260" width="1000" height="260" role="img" aria-labelledby="t d">
+  <title id="t">ERP Frescura Total</title>
+  <desc id="d">Banner del proyecto: ERP de consola para la bodega de alimentos Frescura Total</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#064e3b"/>
+      <stop offset="0.55" stop-color="#047857"/>
+      <stop offset="1" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9f99d"/>
+      <stop offset="1" stop-color="#4ade80"/>
+    </linearGradient>
+    <clipPath id="frame"><rect width="1000" height="260" rx="20"/></clipPath>
+    <g id="leaf-shape">
+      <path d="M0 60 C-46 26 -40 -34 0 -60 C40 -34 46 26 0 60 Z"/>
+    </g>
+  </defs>
+  <style>
+    text { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; }
+    .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 6s ease-in-out infinite; }
+    .sway.b { animation-delay: -2s; animation-duration: 7s; }
+    .rise { animation: rise 8s ease-in-out infinite; }
+    .rise.b { animation-delay: -3s; }
+    .rise.c { animation-delay: -5s; }
+    @keyframes sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+    @keyframes rise { 0%, 100% { transform: translateY(0); opacity: .35; } 50% { transform: translateY(-14px); opacity: .8; } }
+    @media (prefers-reduced-motion: reduce) { .sway, .rise { animation: none; } }
+  </style>
+  <g clip-path="url(#frame)">
+    <rect width="1000" height="260" fill="url(#bg)"/>
+    <circle cx="880" cy="40" r="180" fill="#ffffff" opacity=".06"/>
+    <circle cx="960" cy="240" r="130" fill="#ffffff" opacity=".06"/>
+    <path d="M0 230 C200 190 380 260 600 222 S880 200 1000 232 V260 H0 Z" fill="#022c22" opacity=".35"/>
+
+    <circle class="rise" cx="640" cy="60" r="5" fill="#d9f99d"/>
+    <circle class="rise b" cx="716" cy="190" r="4" fill="#d9f99d"/>
+    <circle class="rise c" cx="600" cy="170" r="3" fill="#d9f99d"/>
+
+    <g transform="translate(850 130)">
+      <g class="sway b"><use href="#leaf-shape" fill="#a7f3d0" opacity=".55" transform="translate(-58 12) rotate(-42) scale(.82)"/></g>
+      <g class="sway b"><use href="#leaf-shape" fill="#a7f3d0" opacity=".55" transform="translate(58 12) rotate(42) scale(.82)"/></g>
+      <g class="sway"><use href="#leaf-shape" fill="url(#leaf)"/></g>
+      <path d="M0 58 V-40" stroke="#065f46" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M0 22 L-18 4 M0 22 L18 4 M0 -4 L-14 -18 M0 -4 L14 -18" stroke="#065f46" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <text x="56" y="78" fill="#a7f3d0" font-size="17" font-weight="600" letter-spacing="4">BODEGA DE ALIMENTOS</text>
+    <text x="54" y="146" fill="#ffffff" font-size="60" font-weight="800">Frescura Total</text>
+    <text x="56" y="186" fill="#ecfdf5" font-size="22">ERP de consola: del proveedor a la entrega</text>
+  </g>
+</svg>

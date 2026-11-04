@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" width="1000" height="300" role="img" aria-labelledby="t d">
+  <title id="t">Arquitectura MVC por módulos</title>
+  <desc id="d">Main abre cada módulo. El Controller coordina la View y el Service o DAO. Los DAO usan JDBC para acceder a MySQL.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="tip" d="M0 0 L10 5 L0 10 Z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; text-anchor: middle; }
+    .box { fill: #ecfdf5; stroke: #059669; stroke-width: 2; }
+    .db { fill: #d1fae5; stroke: #047857; stroke-width: 2; }
+    .label { fill: #064e3b; font-size: 18px; font-weight: 700; }
+    .sub { fill: #4b5563; font-size: 13px; }
+    .tip { fill: #6b7280; }
+    .line { stroke: #6b7280; stroke-width: 2; fill: none; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #0d2a22; stroke: #34d399; }
+      .db { fill: #064e3b; stroke: #34d399; }
+      .label { fill: #a7f3d0; }
+      .sub { fill: #9ca3af; }
+      .tip { fill: #9ca3af; }
+      .line { stroke: #9ca3af; }
+    }
+  </style>
+
+  <g class="line">
+    <path d="M154 150 H204" marker-end="url(#arrow)"/>
+    <path d="M364 128 L424 72" marker-end="url(#arrow)"/>
+    <path d="M364 172 L424 228" marker-end="url(#arrow)"/>
+    <path d="M594 228 H654" marker-end="url(#arrow)"/>
+    <path d="M810 228 H860" marker-end="url(#arrow)"/>
+    <path d="M285 190 V288 H733 V270" marker-end="url(#arrow)"/>
+  </g>
+
+  <rect class="box" x="4" y="110" width="150" height="80" rx="12"/>
+  <text class="label" x="79" y="146">Main</text>
+  <text class="sub" x="79" y="168">menú principal</text>
+
+  <rect class="box" x="206" y="110" width="158" height="80" rx="12"/>
+  <text class="label" x="285" y="146">Controller</text>
+  <text class="sub" x="285" y="168">coordina el módulo</text>
+
+  <rect class="box" x="426" y="30" width="168" height="80" rx="12"/>
+  <text class="label" x="510" y="66">View</text>
+  <text class="sub" x="510" y="88">menús y entrada</text>
+
+  <rect class="box" x="426" y="188" width="168" height="80" rx="12"/>
+  <text class="label" x="510" y="224">Service</text>
+  <text class="sub" x="510" y="246">reglas de negocio</text>
+
+  <rect class="box" x="656" y="188" width="154" height="80" rx="12"/>
+  <text class="label" x="733" y="224">DAO</text>
+  <text class="sub" x="733" y="246">consultas JDBC</text>
+
+  <path class="db" d="M862 200 C862 180 992 180 992 200 V256 C992 276 862 276 862 256 Z"/>
+  <path class="db" d="M862 200 C862 220 992 220 992 200" style="fill: none"/>
+  <text class="label" x="927" y="248">MySQL</text>
+</svg>

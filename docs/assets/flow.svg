@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 170" width="1000" height="170" role="img" aria-labelledby="t d">
+  <title id="t">Flujo del negocio</title>
+  <desc id="d">Proveedor, lote, venta, factura, ruta y entrega, en ese orden</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="tip" d="M0 0 L10 5 L0 10 Z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; text-anchor: middle; }
+    .box { fill: #ffffff; stroke-width: 2.5; }
+    .label { fill: #111827; font-size: 18px; font-weight: 700; }
+    .sub { fill: #6b7280; font-size: 13px; }
+    .tip { fill: #9ca3af; }
+    .line { stroke: #9ca3af; stroke-width: 2.5; fill: none; stroke-dasharray: 7 6; animation: dash 1.4s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -13; } }
+    @media (prefers-reduced-motion: reduce) { .line { animation: none; } }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #161b22; }
+      .label { fill: #f0f6fc; }
+      .sub { fill: #9ca3af; }
+      .tip { fill: #6b7280; }
+      .line { stroke: #6b7280; }
+    }
+  </style>
+
+  <g class="line">
+    <path d="M136 85 H166" marker-end="url(#arrow)"/>
+    <path d="M300 85 H330" marker-end="url(#arrow)"/>
+    <path d="M464 85 H494" marker-end="url(#arrow)"/>
+    <path d="M628 85 H658" marker-end="url(#arrow)"/>
+    <path d="M792 85 H822" marker-end="url(#arrow)"/>
+  </g>
+
+  <g>
+    <rect class="box" x="4" y="40" width="132" height="90" rx="14" stroke="#d97706"/>
+    <text class="label" x="70" y="80">Proveedor</text>
+    <text class="sub" x="70" y="104">abastece</text>
+
+    <rect class="box" x="168" y="40" width="132" height="90" rx="14" stroke="#059669"/>
+    <text class="label" x="234" y="80">Lote</text>
+    <text class="sub" x="234" y="104">recepción y FEFO</text>
+
+    <rect class="box" x="332" y="40" width="132" height="90" rx="14" stroke="#7c3aed"/>
+    <text class="label" x="398" y="80">Venta</text>
+    <text class="sub" x="398" y="104">descuenta stock</text>
+
+    <rect class="box" x="496" y="40" width="132" height="90" rx="14" stroke="#7c3aed"/>
+    <text class="label" x="562" y="80">Factura</text>
+    <text class="sub" x="562" y="104">PNG con QR</text>
+
+    <rect class="box" x="660" y="40" width="132" height="90" rx="14" stroke="#0284c7"/>
+    <text class="label" x="726" y="80">Ruta</text>
+    <text class="sub" x="726" y="104">vehículo y conductor</text>
+
+    <rect class="box" x="824" y="40" width="172" height="90" rx="14" stroke="#0284c7"/>
+    <text class="label" x="910" y="80">Entrega</text>
+    <text class="sub" x="910" y="104">venta entregada</text>
+  </g>
+</svg>
