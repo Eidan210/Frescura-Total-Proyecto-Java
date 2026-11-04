@@ -34,7 +34,7 @@ public class SupplierDaoImpl implements SupplierDao{
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Database error: " + e.getMessage());
             return false;
         }
     }
@@ -54,7 +54,7 @@ public class SupplierDaoImpl implements SupplierDao{
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Database error: " + e.getMessage());
         }
         return Optional.empty();
     }
@@ -73,7 +73,7 @@ public class SupplierDaoImpl implements SupplierDao{
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Database error: " + e.getMessage());
         }
         return suppliers;
     }
@@ -97,7 +97,7 @@ public class SupplierDaoImpl implements SupplierDao{
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Database error: " + e.getMessage());
             return false;
         }
     }
@@ -112,8 +112,11 @@ public class SupplierDaoImpl implements SupplierDao{
                 stmt.setInt(1, id);
                 return stmt.executeUpdate() > 0;
             }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.out.println("Cannot delete: the supplier has registered lots or products.");
+            return false;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Database error: " + e.getMessage());
             return false;
         }
     }
