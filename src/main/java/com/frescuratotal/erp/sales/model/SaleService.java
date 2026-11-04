@@ -153,7 +153,7 @@ public class SaleService {
 
     }
 
-    private void calculateTotals(Sale sale) {
+    void calculateTotals(Sale sale) {
         sale.setSubtotal(sum(sale, SaleDetail::getSubtotal));
         sale.setTotalDiscount(sum(sale, SaleDetail::getDiscountAmount));
         sale.setTotalTax(sum(sale, SaleDetail::getTaxAmount));

@@ -75,7 +75,7 @@ public class SupplierView {
 
     public void showSuppliers(List<Supplier> suppliers) {
         if (suppliers.isEmpty()) {
-            showMessage("No suppliers registered.");
+            showMessage("No suppliers found.");
             return;
         }
         System.out.printf("%-5s %-30s %-15s %-20s %-6s%n", "ID", "Name", "NIT", "Phone", "Active");

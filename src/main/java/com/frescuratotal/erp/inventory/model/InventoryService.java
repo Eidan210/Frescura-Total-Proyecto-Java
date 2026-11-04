@@ -66,7 +66,7 @@ public class InventoryService {
 
     public List<Lot> findLotsByStatus(LotStatus status) {
         return lotDao.findAll().stream()
-                .filter(lot -> lot.getStatusId() == status.getId())
+                .filter(lot -> lot.getStatusId() == status.getId() && lot.getQuantity().compareTo(BigDecimal.ZERO) > 0)
                 .toList();
     }
 
@@ -104,6 +104,9 @@ public class InventoryService {
 
         if (lot.getStatusId() != LotStatus.IN_QUARANTINE.getId()) {
             throw new IllegalArgumentException("Lot " + lot.getLotNumber() + " is not in quarantine.");
+        }
+        if (lot.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Lot " + lot.getLotNumber() + " has no stock to inspect.");
         }
 
         if (inspection.getInspectorName().isEmpty()){
