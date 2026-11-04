@@ -47,7 +47,7 @@ public class InvoiceGenerator {
     private static final int MIN_HEIGHT = 1754;
     private static final int MARGIN = 70;
     private static final int ROW_HEIGHT = 58;
-    private static final int QR_SIZE = 200;
+    private static final int QR_SIZE = 230;
 
     // Colors of the Frescura Total brand
     private static final Color PRIMARY = new Color(84, 40, 125);
@@ -92,6 +92,24 @@ public class InvoiceGenerator {
         return DIAN_QR_URL + cufe;
     }
 
+    /**
+     * Text inside the QR, with the same fields the DIAN uses on real invoices.
+     * Scanning it shows the invoice data, and the last line is the validation link.
+     */
+    public String buildQrContent(Invoice invoice, CompanyInfo company) {
+        return "NumFac: " + invoice.getInvoiceNumber() + "\n"
+                + "FecFac: " + invoice.getIssueDate().toLocalDate() + "\n"
+                + "HorFac: " + invoice.getIssueDate().toLocalTime().withNano(0) + "\n"
+                + "NitFac: " + company.getNit() + "\n"
+                + "DocAdq: " + invoice.getSale().getCustomer().getDocument() + "\n"
+                + "ValFac: " + invoice.getSubtotal().subtract(invoice.getTotalDiscount()) + "\n"
+                + "ValIva: " + invoice.getTaxAmount() + "\n"
+                + "ValOtroIm: 0.00\n"
+                + "ValTolFac: " + invoice.getTotalAmount() + "\n"
+                + "CUFE: " + invoice.getCufe() + "\n"
+                + "QRCode: " + invoice.getQrLink();
+    }
+
     /** Draws the invoice and saves it as invoices/<invoice number>.png */
     public Path generateImage(Invoice invoice, CompanyInfo company) {
         Sale sale = invoice.getSale();
@@ -108,7 +126,7 @@ public class InvoiceGenerator {
         drawInfoBoxes(g, invoice, 290);
         int y = drawDetails(g, sale, 520);
         y = drawTotals(g, invoice, y + 40);
-        drawDianData(g, invoice, y + 50);
+        drawDianData(g, invoice, company, y + 50);
         drawFooter(g, company, height);
 
         g.dispose();
@@ -270,13 +288,13 @@ public class InvoiceGenerator {
         return y + 210;
     }
 
-    private void drawDianData(Graphics2D g, Invoice invoice, int y) {
+    private void drawDianData(Graphics2D g, Invoice invoice, CompanyInfo company, int y) {
         int boxWidth = WIDTH - 2 * MARGIN;
         g.setColor(LINE);
         g.setStroke(new BasicStroke(2));
         g.drawRoundRect(MARGIN, y, boxWidth, QR_SIZE + 40, 16, 16);
 
-        g.drawImage(createQr(invoice.getQrLink()), MARGIN + 20, y + 20, null);
+        g.drawImage(createQr(buildQrContent(invoice, company)), MARGIN + 20, y + 20, null);
 
         int textX = MARGIN + QR_SIZE + 50;
         g.setColor(PRIMARY);
@@ -292,7 +310,7 @@ public class InvoiceGenerator {
 
         g.setColor(GRAY);
         g.setFont(font(Font.ITALIC, 17));
-        g.drawString("Scan the QR code to validate this invoice on the DIAN website (simulated).", textX, y + 165);
+        g.drawString("Scan the QR code to see the invoice data and the DIAN validation link (simulated).", textX, y + 165);
         g.drawString("Simulated electronic invoice for an academic project.", textX, y + 190);
     }
 
