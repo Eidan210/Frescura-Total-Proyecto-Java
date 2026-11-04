@@ -16,8 +16,9 @@ Controla lotes, ventas, proveedores y entregas desde la consola.
 [Flujo](#flujo-del-negocio) ·
 [Arquitectura](#arquitectura) ·
 [Instalación](#instalación) ·
+[Patrones](#principios-y-patrones-de-diseño) ·
 [Base de datos](#base-de-datos) ·
-[Equipo](#equipo)
+[Autores](#autores)
 
 </div>
 
@@ -73,6 +74,44 @@ src/main/java/com/frescuratotal/erp/
 ├── suppliers/       controller · model · view
 └── logistics/       controller · model · view · Dao
 ```
+
+## Principios y patrones de diseño
+
+### Modelo-Vista-Controlador (MVC)
+
+Cada módulo (`inventory`, `sales`, `suppliers`, `logistics`) separa sus clases en tres paquetes. La **vista** (por ejemplo `SalesView`) solo muestra menús y lee lo que escribe el usuario; el **controlador** (`SalesController`) recibe la opción y decide a quién llamar; el **modelo** (entidades, servicios y DAO) contiene los datos y las reglas del negocio.
+
+Lo elegimos para que cada parte tenga un solo trabajo: si mañana la consola se cambia por una interfaz gráfica, solo se reemplaza la vista. Además, cada integrante pudo trabajar en su propio paquete sin pisar el código de los demás.
+
+### DAO (Data Access Object)
+
+Todo el acceso a MySQL pasa por pares interfaz + implementación: `CustomerDao` / `CustomerDaoImpl`, `SaleDao` / `SaleDaoImpl`, `LotDao` / `LotDaoImpl`, `SupplierDao`, `DriverDao`, entre otros. La interfaz dice **qué** operaciones existen (guardar, buscar, actualizar, borrar) y la implementación dice **cómo** se hacen con SQL.
+
+Así el resto del programa no depende de MySQL: si cambia la base de datos, solo cambia la implementación. Todas las consultas usan `PreparedStatement` con parámetros `?`, lo que evita la inyección SQL.
+
+### Singleton
+
+`DatabaseConnection` tiene un constructor privado y un método `getInstance()` que siempre devuelve la misma instancia. De esta forma todo el programa comparte **una sola conexión JDBC**, configurada una vez con los datos de `db.properties` (leídos por `DatabaseConfig`).
+
+### Capa de servicio
+
+`InventoryService` y `SaleService` reúnen las reglas del negocio para que los controladores y los DAO no las mezclen. En ventas, `SaleService` aplica la estrategia **FEFO** (usa `findAvailableLots`, que ordena los lotes por fecha de vencimiento), reparte un pedido entre varios lotes cuando uno no alcanza, aplica el **50 % de descuento** a los lotes próximos a vencer, calcula el **IVA del 19 %** sobre el valor con descuento y lanza `InsufficientStockException` si no hay inventario suficiente.
+
+### Transacciones
+
+Confirmar una venta toca tres tablas: `ventas`, `detalles_venta` y `lotes_inventario`. `SaleDaoImpl.save` las actualiza dentro de **una sola transacción** (`setAutoCommit(false)`, `commit` y `rollback`): si algo falla a mitad de camino, se deshace todo y el inventario nunca queda descuadrado. El `UPDATE ... AND cantidad >= ?` impide vender más de lo que tiene un lote. Logística usa el mismo mecanismo al asignar rutas de entrega.
+
+### Principios SOLID
+
+- **Responsabilidad única (S):** cada clase tiene un solo trabajo. La vista muestra, el controlador coordina, el servicio aplica reglas, el DAO guarda y consulta, e `InvoiceGenerator` solo construye el CUFE, el QR y la imagen de la factura.
+- **Abierto/cerrado (O):** se puede agregar una nueva implementación de un DAO sin modificar las clases que lo usan.
+- **Sustitución de Liskov (L):** cualquier implementación de `CustomerDao` puede reemplazar a `CustomerDaoImpl` sin que el controlador lo note, porque cumple el mismo contrato.
+- **Segregación de interfaces (I):** en lugar de una interfaz gigante, cada entidad tiene su propia interfaz pequeña (`CustomerDao`, `SaleDao`, `InvoiceDao`, `LotDao`...).
+- **Inversión de dependencias (D):** los controladores y servicios reciben interfaces, no clases concretas (por ejemplo `InventoryService(LotDao, ProductDao, SupplierDao, QualityDao)` o `LogisticsController(..., SaleDao, CustomerDao, ...)`). `Main` es quien decide qué implementación usar.
+
+### Enums con identificador y records
+
+Los catálogos de la base de datos se representan con enums (`CustomerType`, `SaleStatus`, `LotStatus`). Cada opción guarda su id de la tabla: `getId()` la convierte en número para guardarla y `fromId()` hace el camino contrario al leerla. Para resultados que solo transportan datos se usan `record` (`SaleReceipt`, `LotTrace`, `LotDelivery`).
 
 ## Tecnologías
 
@@ -166,11 +205,13 @@ El script [`docs/database.sql`](docs/database.sql) crea 22 tablas y carga datos 
 | `develop` | Integración del equipo |
 | `feature/*`, `fix/*`, `docs/*` | Cambios puntuales, que entran a `develop` por pull request |
 
-## Equipo
+## Autores
 
-- **Eidan210**
-- **reatiguiadriana901**
-- **sergioRepository**
+| Nombre | GitHub |
+| --- | --- |
+| Eidan Cuadros | [Eidan210](https://github.com/Eidan210) |
+| Adriana Marcela Reatigui Mateus | [reatiguiadriana901](https://github.com/reatiguiadriana901) |
+| Sergio Daniel Flórez López | [sergioRepository](https://github.com/sergioRepository) |
 
 <div align="center">
 <br/>
