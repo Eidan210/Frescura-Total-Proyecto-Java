@@ -52,7 +52,7 @@ public class SupplierController {
         Optional<Supplier> found = findSupplier();
         if (found.isEmpty()) return;
         view.showSupplier(found.get());
-        if (!view.confirm("Delete this supplier?")) {
+        if (!view.confirm("Delete this supplier and its product catalog?")) {
             view.showMessage("Deletion cancelled.");
             return;
         }

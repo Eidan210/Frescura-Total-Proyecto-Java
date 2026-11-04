@@ -82,6 +82,11 @@ public class InventoryView {
         inspection.setLotId(readInt("Lot ID: "));
 
         String answer = readLine("Approved? (y/n): ");
+        // A mistyped answer must not reject the whole lot
+        while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
+            System.out.println("Please answer y or n.");
+            answer = readLine("Approved? (y/n): ");
+        }
 
         if (answer.equalsIgnoreCase("y")) {
             inspection.setResult(InspectionResult.APPROVED);

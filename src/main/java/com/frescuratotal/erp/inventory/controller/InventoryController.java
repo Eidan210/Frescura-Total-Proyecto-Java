@@ -4,6 +4,7 @@ import com.frescuratotal.erp.inventory.model.*;
 import com.frescuratotal.erp.inventory.view.InventoryView;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class InventoryController {
     private final InventoryView view;
@@ -17,9 +18,21 @@ public class InventoryController {
     }
 
     public void start() {
-        int option;
+        int option = 0;
         do {
-            option = view.showMenu();
+            // The DAOs wrap SQLException in RuntimeException, so a database failure arrives here.
+            try {
+                option = view.showMenu();
+                handle(option);
+            } catch (NoSuchElementException e) {
+                throw e; // the input was closed: asking again would loop forever
+            } catch (RuntimeException e) {
+                view.showMessage("The operation could not be completed: " + e.getMessage());
+            }
+        } while (option != 9);
+    }
+
+    private void handle(int option) {
             switch (option) {
                 case 1 -> view.showLots(lotDao.findAll());
                 case 2 -> {
@@ -83,7 +96,6 @@ public class InventoryController {
                 case 9 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
-        } while (option != 9);
     }
 }
 

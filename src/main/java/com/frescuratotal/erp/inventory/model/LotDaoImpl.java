@@ -1,6 +1,7 @@
 package com.frescuratotal.erp.inventory.model;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
+import com.frescuratotal.erp.common.exception.InsufficientStockException;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -34,6 +35,7 @@ public class LotDaoImpl implements LotDao {
                 SELECT *
                 FROM lotes_inventario
                 WHERE id_producto = ? AND id_estado IN (1,2) AND cantidad > 0
+                  AND fecha_vencimiento >= CURDATE()
                 ORDER BY fecha_vencimiento ASC""";
 
         List<Lot> lots = new ArrayList<>();
@@ -75,15 +77,18 @@ public class LotDaoImpl implements LotDao {
 
     @Override
     public void decreaseQuantity(int lotId, BigDecimal amount) {
-        String sql = "UPDATE lotes_inventario SET cantidad = cantidad - ? WHERE id_lote = ?";
+        String sql = "UPDATE lotes_inventario SET cantidad = cantidad - ? WHERE id_lote = ? AND cantidad >= ?";
 
         Connection conn = DatabaseConnection.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setBigDecimal(1, amount);
             ps.setInt(2, lotId);
+            ps.setBigDecimal(3, amount);
 
-            ps.executeUpdate();
+            if (ps.executeUpdate() == 0) {
+                throw new InsufficientStockException("Lot " + lotId + " no longer has that quantity.");
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException("Error decreasing lot quantity ", e);

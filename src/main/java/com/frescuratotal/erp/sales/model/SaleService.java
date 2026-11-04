@@ -1,7 +1,9 @@
 package com.frescuratotal.erp.sales.model;
 
+import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.common.exception.InsufficientStockException;
 import com.frescuratotal.erp.common.util.CodeGenerator;
+import com.frescuratotal.erp.common.util.InputUtil;
 import com.frescuratotal.erp.inventory.model.Lot;
 import com.frescuratotal.erp.inventory.model.LotDao;
 import com.frescuratotal.erp.inventory.model.LotDaoImpl;
@@ -30,9 +32,7 @@ public class SaleService {
     }
 
     public void addProduct(Sale sale, int productId, BigDecimal quantity) {
-        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than zero");
-        }
+        InputUtil.requireAmount(quantity, "Quantity");
 
         List<Lot> lots = lotDao.findAvailableLots(productId);
 
@@ -66,7 +66,8 @@ public class SaleService {
 
             SaleDetail saleDetail = new SaleDetail(taken,lot);
 
-            if (LotStatus.fromId( lot.getStatusId() ) == LotStatus.NEAR_EXPIRY){
+            // By date, not by stored status: that one is only as fresh as the last expiration check
+            if (LotStatus.forExpiration(lot.getExpirationDate()) == LotStatus.NEAR_EXPIRY){
                 saleDetail.setDiscountApplied(NEAR_EXPIRY_DISCOUNT);
             }else{
                 saleDetail.setDiscountApplied(BigDecimal.ZERO);
@@ -81,7 +82,8 @@ public class SaleService {
     }
 
     /**
-     * The customer says "done": totals, save everything (one transaction) and create the invoice.
+     * The customer says "done": totals, invoice image and then one transaction for the data.
+     * The image goes first so a failure there leaves the sale and the stock untouched.
      */
     public SaleReceipt confirmSale(Sale sale) {
         if (sale.getSaleDetails().isEmpty()) {
@@ -89,7 +91,6 @@ public class SaleService {
         }
 
         calculateTotals(sale);
-        saleDao.save(sale); // sale + details + lots, all or nothing
 
         CompanyInfo company = invoiceDao.findCompanyInfo();
         String invoiceNumber = CodeGenerator.generateInvoiceNumber();
@@ -98,9 +99,17 @@ public class SaleService {
 
         Invoice invoice = new Invoice(sale, invoiceNumber, cufe, invoiceGenerator.buildQrLink(cufe));
         invoice.setIssueDate(issueDate);
-        invoiceDao.save(invoice);
 
         Path invoiceFile = invoiceGenerator.generateImage(invoice, company);
+        try {
+            DatabaseConnection.getInstance().inTransaction(() -> {
+                saleDao.save(sale);
+                invoiceDao.save(invoice);
+            });
+        } catch (RuntimeException e) {
+            invoiceFile.toFile().delete(); // no sale, so no invoice
+            throw e;
+        }
         return new SaleReceipt(invoice, invoiceFile);
     }
 
@@ -110,7 +119,7 @@ public class SaleService {
 
     /** Sends a registered sale to the logistics panel (status In Preparation). */
     public boolean sendToPreparation(int saleId) {
-        return saleDao.updateStatus(saleId, SaleStatus.IN_PREPARATION);
+        return saleDao.updateStatus(saleId, SaleStatus.REGISTERED, SaleStatus.IN_PREPARATION);
     }
 
     private BigDecimal reservedInSale(Sale sale, int lotId) {

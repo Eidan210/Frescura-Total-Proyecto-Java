@@ -28,7 +28,7 @@ public class SupplierView {
         s.setName(readRequired("Name: "));
         s.setNit(readRequired("NIT: "));
         s.setContactPerson(readLine("Contact person: "));
-        s.setEmail(readLine("Email: "));
+        s.setEmail(readRequired("Email: "));
         s.setPhone(readLine("Phone: "));
         s.setAddress(readLine("Address: "));
         s.setActive(1);

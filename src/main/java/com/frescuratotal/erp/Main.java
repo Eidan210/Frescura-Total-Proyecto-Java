@@ -23,11 +23,12 @@ import com.frescuratotal.erp.suppliers.view.SupplierView;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-        Connection conn = DatabaseConnection.getInstance().getConnection();
+        Connection conn = connect();
 
         if (conn != null && conn.isValid(2)) {
             System.out.println("Connected to database successfully");
@@ -38,8 +39,32 @@ public class Main {
         }
 
 
-        int option = 0;
         Scanner sc = new Scanner(System.in);
+        try {
+            runMenu(sc);
+        } catch (NoSuchElementException e) {
+            System.out.println("Input closed. Exiting...");
+        }
+
+        sc.close();
+        conn.close();
+    }
+
+    /** Stops with a clear message when db.properties is missing or MySQL does not answer. */
+    private static Connection connect() {
+        try {
+            return DatabaseConnection.getInstance().getConnection();
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+        } catch (ExceptionInInitializerError e) {
+            System.out.println(e.getCause().getMessage());
+        }
+        System.exit(1);
+        return null;
+    }
+
+    private static void runMenu(Scanner sc) {
+        int option = 0;
 
         do {
             // 1. Print the menu options
@@ -86,8 +111,5 @@ public class Main {
             }
 
         } while (option != 5);
-
-        sc.close();
-        conn.close();
     }
 }

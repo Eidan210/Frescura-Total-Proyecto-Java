@@ -10,6 +10,7 @@ import com.frescuratotal.erp.sales.model.SaleService;
 import com.frescuratotal.erp.sales.view.SalesView;
 
 import java.math.BigDecimal;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class SalesController {
@@ -26,17 +27,24 @@ public class SalesController {
     }
 
     public void start() {
-        int option;
+        int option = 0;
         do {
-            option = view.showMenu();
-            switch (option) {
-                case 1 -> registerCustomer();
-                case 2 -> view.showCustomers(customerDao.findAll());
-                case 3 -> newSale();
-                case 4 -> view.showSales(service.findAllSales());
-                case 5 -> sendToPreparation();
-                case 6 -> view.showMessage("Returning to main menu...");
-                default -> view.showMessage("Invalid option");
+            // The DAOs wrap SQLException in RuntimeException, so a database failure arrives here.
+            try {
+                option = view.showMenu();
+                switch (option) {
+                    case 1 -> registerCustomer();
+                    case 2 -> view.showCustomers(customerDao.findAll());
+                    case 3 -> newSale();
+                    case 4 -> view.showSales(service.findAllSales());
+                    case 5 -> sendToPreparation();
+                    case 6 -> view.showMessage("Returning to main menu...");
+                    default -> view.showMessage("Invalid option");
+                }
+            } catch (NoSuchElementException e) {
+                throw e; // the input was closed: asking again would loop forever
+            } catch (RuntimeException e) {
+                view.showMessage("The operation could not be completed: " + e.getMessage());
             }
         } while (option != 6);
     }
@@ -100,7 +108,7 @@ public class SalesController {
         if (service.sendToPreparation(saleId)) {
             view.showMessage("Sale " + saleId + " is now In Preparation and visible for logistics.");
         } else {
-            view.showMessage("Sale " + saleId + " does not exist.");
+            view.showMessage("Sale " + saleId + " does not exist or is not Registered.");
         }
     }
 }

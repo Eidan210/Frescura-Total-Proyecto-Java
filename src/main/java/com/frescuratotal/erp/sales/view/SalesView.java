@@ -32,11 +32,11 @@ public class SalesView {
     // ---------- Customers ----------
 
     public Customer readNewCustomer() {
-        String name = readLine("Name: ");
-        String document = readLine("Document (NIT / ID): ");
+        String name = readRequired("Name: ");
+        String document = readRequired("Document (NIT / ID): ");
         String email = readLine("Email: ");
         String phone = readLine("Phone: ");
-        String address = readLine("Address: ");
+        String address = readRequired("Address: "); // a sale without it cannot be delivered
         CustomerType type = readCustomerType();
         return new Customer(name, document, email, phone, address, type);
     }
@@ -169,6 +169,15 @@ public class SalesView {
                 System.out.println("'" + line + "' is not a valid number.");
             }
         }
+    }
+
+    private String readRequired(String prompt) {
+        String value = readLine(prompt);
+        while (value.isEmpty()) {
+            System.out.println("This field is required.");
+            value = readLine(prompt);
+        }
+        return value;
     }
 
     private String readLine(String prompt) {
