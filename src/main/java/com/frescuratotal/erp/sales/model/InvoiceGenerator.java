@@ -50,13 +50,13 @@ public class InvoiceGenerator {
     private static final int QR_SIZE = 200;
 
     // Colors of the Frescura Total brand
-    private static final Color GREEN = new Color(30, 77, 43);
-    private static final Color LIGHT_GREEN = new Color(240, 245, 238);
+    private static final Color PRIMARY = new Color(84, 40, 125);
+    private static final Color LIGHT = new Color(244, 239, 250);
     private static final Color GOLD = new Color(196, 154, 66);
     private static final Color ORANGE = new Color(194, 94, 32);
     private static final Color TEXT = new Color(33, 37, 41);
     private static final Color GRAY = new Color(108, 117, 125);
-    private static final Color LINE = new Color(214, 219, 212);
+    private static final Color LINE = new Color(221, 214, 230);
 
     // Times New Roman when the computer has it; a similar serif font if not
     private static final String FONT = pickFont("Times New Roman", "Liberation Serif", "Serif");
@@ -118,8 +118,8 @@ public class InvoiceGenerator {
     // ---------- Sections of the invoice ----------
 
     private void drawHeader(Graphics2D g, Invoice invoice, CompanyInfo company) {
-        // Green band with the company data
-        g.setColor(GREEN);
+        // Purple band with the company data
+        g.setColor(PRIMARY);
         g.fillRect(0, 0, WIDTH, 220);
         g.setColor(GOLD);
         g.fillRect(0, 220, WIDTH, 8);
@@ -136,7 +136,7 @@ public class InvoiceGenerator {
         int cardX = WIDTH - MARGIN - 360;
         g.setColor(Color.WHITE);
         g.fillRoundRect(cardX, 45, 360, 135, 18, 18);
-        g.setColor(GREEN);
+        g.setColor(PRIMARY);
         g.setFont(font(Font.BOLD, 20));
         drawCentered(g, "ELECTRONIC SALES INVOICE", cardX, 360, 85);
         g.setColor(TEXT);
@@ -174,7 +174,7 @@ public class InvoiceGenerator {
         int totalRight = MARGIN + tableWidth - 20;
 
         // Header row
-        g.setColor(GREEN);
+        g.setColor(PRIMARY);
         g.fillRoundRect(MARGIN, y, tableWidth, 50, 12, 12);
         g.setColor(Color.WHITE);
         g.setFont(font(Font.BOLD, 20));
@@ -189,7 +189,7 @@ public class InvoiceGenerator {
         boolean shaded = false;
         for (SaleDetail detail : sale.getSaleDetails()) {
             if (shaded) {
-                g.setColor(LIGHT_GREEN);
+                g.setColor(LIGHT);
                 g.fillRect(MARGIN, y, tableWidth, ROW_HEIGHT);
             }
             shaded = !shaded;
@@ -235,7 +235,7 @@ public class InvoiceGenerator {
         int valueRight = boxX + boxWidth - 25;
 
         // Thank-you note on the left
-        g.setColor(GREEN);
+        g.setColor(PRIMARY);
         g.setFont(font(Font.ITALIC, 26));
         g.drawString("Thank you for your purchase!", MARGIN, y + 40);
         g.setColor(GRAY);
@@ -243,7 +243,7 @@ public class InvoiceGenerator {
         g.drawString("Products marked in orange had a near-expiry discount.", MARGIN, y + 72);
         g.drawString("VAT is calculated after discounts.", MARGIN, y + 96);
 
-        g.setColor(LIGHT_GREEN);
+        g.setColor(LIGHT);
         g.fillRoundRect(boxX, y, boxWidth, 210, 16, 16);
 
         g.setFont(font(Font.PLAIN, 21));
@@ -259,8 +259,8 @@ public class InvoiceGenerator {
         g.drawString("VAT (19%)", labelX, y + 122);
         drawRight(g, money(invoice.getTaxAmount()), valueRight, y + 122);
 
-        // Total in a green bar
-        g.setColor(GREEN);
+        // Total in a purple bar
+        g.setColor(PRIMARY);
         g.fillRoundRect(boxX, y + 145, boxWidth, 65, 16, 16);
         g.setColor(Color.WHITE);
         g.setFont(font(Font.BOLD, 26));
@@ -279,7 +279,7 @@ public class InvoiceGenerator {
         g.drawImage(createQr(invoice.getQrLink()), MARGIN + 20, y + 20, null);
 
         int textX = MARGIN + QR_SIZE + 50;
-        g.setColor(GREEN);
+        g.setColor(PRIMARY);
         g.setFont(font(Font.BOLD, 22));
         g.drawString("CUFE (Unique Electronic Invoice Code)", textX, y + 55);
 
@@ -299,7 +299,7 @@ public class InvoiceGenerator {
     private void drawFooter(Graphics2D g, CompanyInfo company, int height) {
         g.setColor(GOLD);
         g.fillRect(0, height - 78, WIDTH, 6);
-        g.setColor(GREEN);
+        g.setColor(PRIMARY);
         g.fillRect(0, height - 72, WIDTH, 72);
         g.setColor(Color.WHITE);
         g.setFont(font(Font.PLAIN, 18));
@@ -310,9 +310,9 @@ public class InvoiceGenerator {
     // ---------- Small drawing helpers ----------
 
     private void drawBox(Graphics2D g, String title, int x, int y, int width, int height, List<String> lines) {
-        g.setColor(LIGHT_GREEN);
+        g.setColor(LIGHT);
         g.fillRoundRect(x, y, width, height, 16, 16);
-        g.setColor(GREEN);
+        g.setColor(PRIMARY);
         g.fillRoundRect(x, y, 8, height, 8, 8);
 
         g.setFont(font(Font.BOLD, 18));
