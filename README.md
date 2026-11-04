@@ -12,22 +12,22 @@
 **Sistema de gestión para la bodega de alimentos Frescura Total.**
 Controla lotes, ventas, proveedores y entregas desde la consola.
 
-[Módulos](#-módulos) ·
-[Flujo](#-flujo-del-negocio) ·
-[Arquitectura](#-arquitectura) ·
-[Instalación](#-instalación) ·
-[Base de datos](#-base-de-datos) ·
-[Equipo](#-equipo)
+[Módulos](#módulos) ·
+[Flujo](#flujo-del-negocio) ·
+[Arquitectura](#arquitectura) ·
+[Instalación](#instalación) ·
+[Base de datos](#base-de-datos) ·
+[Equipo](#equipo)
 
 </div>
 
 ---
 
-## 🥕 Sobre el proyecto
+## Sobre el proyecto
 
 En una bodega de alimentos, un lote que vence sin venderse es dinero perdido. Este ERP lleva cada producto desde que llega del proveedor hasta que se entrega al cliente: prioriza los lotes que vencen primero (FEFO), aísla los que tienen problemas de calidad y permite rastrear a qué clientes llegó cada lote.
 
-## 📦 Módulos
+## Módulos
 
 <img src="docs/assets/modules.svg" alt="Módulos: Inventario, Ventas, Proveedores y Logística" width="100%"/>
 
@@ -45,7 +45,7 @@ En una bodega de alimentos, un lote que vence sin venderse es dinero perdido. Es
 
 </details>
 
-## 🔄 Flujo del negocio
+## Flujo del negocio
 
 <img src="docs/assets/flow.svg" alt="Proveedor, lote, venta, factura, ruta y entrega" width="100%"/>
 
@@ -58,7 +58,7 @@ En una bodega de alimentos, un lote que vence sin venderse es dinero perdido. Es
 > [!NOTE]
 > Las rutas se crean directamente en `IN_TRANSIT` y pasan a `COMPLETED` al terminar. `PLANNED` y `CANCELLED` existen en el modelo, pero todavía ninguna opción del menú los asigna.
 
-## 🏛 Arquitectura
+## Arquitectura
 
 Cada módulo sigue el patrón MVC con DAO para el acceso a datos. Inventario y Ventas añaden una capa de servicio con las reglas de negocio; en los demás casos, el controller llama directamente al DAO. `DatabaseConnection` es un singleton que comparte la conexión JDBC.
 
@@ -74,7 +74,7 @@ src/main/java/com/frescuratotal/erp/
 └── logistics/       controller · model · view · Dao
 ```
 
-## 🧰 Tecnologías
+## Tecnologías
 
 | Tecnología | Uso |
 |---|---|
@@ -83,7 +83,7 @@ src/main/java/com/frescuratotal/erp/
 | **MySQL** + `mysql-connector-j` | Persistencia mediante JDBC |
 | **ZXing** | Código QR de las facturas |
 
-## 🚀 Instalación
+## Instalación
 
 ### Requisitos
 
@@ -132,7 +132,7 @@ mvn compile exec:java -Dexec.mainClass=com.frescuratotal.erp.Main
 
 Las facturas se guardan como PNG en la carpeta `invoices/`.
 
-## 🗄 Base de datos
+## Base de datos
 
 El script [`docs/database.sql`](docs/database.sql) crea 22 tablas y carga datos de prueba.
 
@@ -158,7 +158,7 @@ El script [`docs/database.sql`](docs/database.sql) crea 22 tablas y carga datos 
 <img src="docs/diagrama_clases.png" alt="Diagrama de clases" width="100%"/>
 </details>
 
-## 🌿 Flujo de trabajo
+## Flujo de trabajo
 
 | Rama | Propósito |
 |---|---|
@@ -166,7 +166,7 @@ El script [`docs/database.sql`](docs/database.sql) crea 22 tablas y carga datos 
 | `develop` | Integración del equipo |
 | `feature/*`, `fix/*`, `docs/*` | Cambios puntuales, que entran a `develop` por pull request |
 
-## 👥 Equipo
+## Equipo
 
 - **Eidan210**
 - **reatiguiadriana901**
@@ -174,5 +174,5 @@ El script [`docs/database.sql`](docs/database.sql) crea 22 tablas y carga datos 
 
 <div align="center">
 <br/>
-<sub>Hecho con 🥦 por el equipo de Frescura Total</sub>
+<sub>Hecho por el equipo de Frescura Total</sub>
 </div>
