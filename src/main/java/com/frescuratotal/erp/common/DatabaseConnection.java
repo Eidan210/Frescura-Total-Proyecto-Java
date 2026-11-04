@@ -32,7 +32,7 @@ public class DatabaseConnection {
         return connection;
     }
 
-    /** All DAOs share this connection, so the work is saved or undone as a whole. */
+
     public void inTransaction(Runnable work) {
         try {
             connection.setAutoCommit(false);

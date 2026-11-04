@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Function;
 
 
 public class SaleService {
@@ -153,29 +154,14 @@ public class SaleService {
     }
 
     private void calculateTotals(Sale sale) {
-        BigDecimal subtotal = BigDecimal.ZERO;
-        BigDecimal totalDiscount = BigDecimal.ZERO;
-        BigDecimal totalTax = BigDecimal.ZERO;
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        sale.setSubtotal(sum(sale, SaleDetail::getSubtotal));
+        sale.setTotalDiscount(sum(sale, SaleDetail::getDiscountAmount));
+        sale.setTotalTax(sum(sale, SaleDetail::getTaxAmount));
+        sale.setTotalAmount(sum(sale, SaleDetail::getLineTotal));
+    }
 
-        for( SaleDetail detail : sale.getSaleDetails()){
-
-            subtotal = subtotal.add(detail.getSubtotal());
-
-            totalDiscount = totalDiscount.add(detail.getDiscountAmount());
-
-            totalTax = totalTax.add(detail.getTaxAmount());
-
-            totalAmount = totalAmount.add(detail.getLineTotal());
-
-
-        }
-
-        sale.setSubtotal(subtotal);
-        sale.setTotalDiscount(totalDiscount);
-        sale.setTotalTax(totalTax);
-        sale.setTotalAmount(totalAmount);
-
+    private BigDecimal sum(Sale sale, Function<SaleDetail, BigDecimal> field) {
+        return sale.getSaleDetails().stream().map(field).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 

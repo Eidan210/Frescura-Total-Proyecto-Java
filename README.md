@@ -38,9 +38,9 @@ En una bodega de alimentos, un lote que vence sin venderse es dinero perdido. Es
 
 | Módulo | Opciones en la aplicación |
 |---|---|
-| **Inventory** | List all lots · List available lots by product (FEFO) · Register goods reception · Put lot in quarantine · Inspect quarantined lot · Register waste · Run expiration check · Trace lot |
+| **Inventory** | List all lots · List available lots by product (FEFO) · Register goods reception · Put lot in quarantine · Inspect quarantined lot · Register waste · Run expiration check · Trace lot · List lots by status |
 | **Sales** | Register customer · List customers · New sale · List sales · Send sale to preparation (logistics) |
-| **Suppliers** | Register supplier · List suppliers · Find supplier by ID · Update supplier · Delete supplier |
+| **Suppliers** | Register supplier · List suppliers · Find supplier by ID · Update supplier · Delete supplier · Search supplier by name |
 | **Logistics** | Dispatch panel · Create delivery route · List delivery routes · Mark sale as delivered · Register vehicle · Register driver · List vehicles · List drivers |
 
 </details>

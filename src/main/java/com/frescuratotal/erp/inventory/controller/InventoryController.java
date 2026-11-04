@@ -29,7 +29,7 @@ public class InventoryController {
             } catch (RuntimeException e) {
                 view.showMessage("The operation could not be completed: " + e.getMessage());
             }
-        } while (option != 9);
+        } while (option != 10);
     }
 
     private void handle(int option) {
@@ -93,7 +93,12 @@ public class InventoryController {
                         view.showTrace(trace, deliveries);
                     }
                 }
-                case 9 -> view.showMessage("Returning to main menu...");
+                case 9 -> {
+                    LotStatus status = view.readLotStatus();
+                    service.runExpirationCheck(); // the stored status may be out of date
+                    view.showLots(service.findLotsByStatus(status));
+                }
+                case 10 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
     }

@@ -19,7 +19,8 @@ public class SupplierView {
                 "3. Find supplier by ID\n" +
                 "4. Update supplier\n" +
                 "5. Delete supplier\n" +
-                "6. Back");
+                "6. Search supplier by name\n" +
+                "7. Back");
         return readInt("Option: ");
     }
 
@@ -46,6 +47,10 @@ public class SupplierView {
         s.setAddress(readOrKeep("Address", s.getAddress()));
         String active = readOrKeep("Active (1 = yes, 0 = no)", String.valueOf(s.getActive()));
         s.setActive("0".equals(active) ? 0 : 1);
+    }
+
+    public String readSearchText() {
+        return readLine("Name contains: ");
     }
 
     public int readId() {

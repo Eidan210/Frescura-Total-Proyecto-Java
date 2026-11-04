@@ -7,6 +7,7 @@ import com.frescuratotal.erp.suppliers.model.SupplierDao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class InventoryService {
     private final LotDao lotDao;
@@ -61,6 +62,12 @@ public class InventoryService {
             qualityDao.saveQuarantine(quarantine);
             lotDao.updateStatus(lot.getId(), LotStatus.IN_QUARANTINE);
         });
+    }
+
+    public List<Lot> findLotsByStatus(LotStatus status) {
+        return lotDao.findAll().stream()
+                .filter(lot -> lot.getStatusId() == status.getId())
+                .toList();
     }
 
     public ExpirationCheckResult runExpirationCheck() {
