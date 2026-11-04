@@ -68,7 +68,7 @@ public class Main {
                     new SupplierController(new SupplierView(sc), new SupplierDaoImpl()).start();
                     break;
                 case 4:
-                    // logistics module
+
                     new LogisticsController(new LogisticsView(sc), new SaleDaoImpl(), new CustomerDaoImpl(),
                             new DeliveryRouteDaoimpl(), new DeliveryAssignmentDaoimpl(), new RouteSaleDaoimpl(),
                             new VehicleDaoImpl(), new DriverDaoimpl()).start();

@@ -37,8 +37,6 @@ public class LogisticsView {
         return readInt("Option: ");
     }
 
-    // ---------- Input ----------
-
     public String readRouteName() {
         return readLine("Route name: ");
     }
@@ -99,7 +97,6 @@ public class LogisticsView {
         return new Driver(0, name, licenseNumber, phone, email, true);
     }
 
-    // ---------- Output ----------
 
     public void showSales(List<Sale> sales) {
         if (sales.isEmpty()) {
@@ -172,7 +169,7 @@ public class LogisticsView {
         System.out.println(message);
     }
 
-    // ---------- Helpers ----------
+
 
     private String formatDate(LocalDateTime date) {
         if (date == null) {
