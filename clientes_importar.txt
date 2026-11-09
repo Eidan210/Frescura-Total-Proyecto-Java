@@ -1,0 +1,6 @@
+nombre;documento;correo;telefono;tipo_cliente
+Distribuidora Omega;901234567;contacto@omega.com;3001234567;MAYORISTA
+Tienda El Parque;1020304050;tienda@parque.com;3109876543;MINORISTA
+Supermercado Central;800456789;ventas@central.com;3205551234;MAYORISTA
+Restaurante Primavera;1080998877;admin@primavera.com;3157891234;MINORISTA
+Minimercado Sol;1099887766;info@minisol.com;3014567890;MINORISTA
