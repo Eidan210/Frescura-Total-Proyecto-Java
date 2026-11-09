@@ -79,7 +79,8 @@ public class Main {
                     "2. Sales\n" +
                     "3. Suppliers\n" +
                     "4. Logistics\n" +
-                    "5. Exit");
+                    "5. Generar Reporte de Rendimiento de Proveedores\n" +
+                    "6. Exit");
 
             // 2. Read the user's option
             option = InputUtil.readInt(sc, "Option: ");
@@ -113,6 +114,10 @@ public class Main {
                             new VehicleDaoImpl(), new DriverDaoimpl()).start();
                     break;
                 case 5:
+                    // Exit
+                    System.out.println("Exiting...");
+                    break;
+                case 6:
                     // Exit
                     System.out.println("Exiting...");
                     break;
