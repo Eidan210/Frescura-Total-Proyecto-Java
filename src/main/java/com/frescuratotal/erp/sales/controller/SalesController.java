@@ -2,11 +2,7 @@ package com.frescuratotal.erp.sales.controller;
 
 import com.frescuratotal.erp.common.exception.InsufficientStockException;
 import com.frescuratotal.erp.inventory.model.ProductDao;
-import com.frescuratotal.erp.sales.model.Customer;
-import com.frescuratotal.erp.sales.model.CustomerDao;
-import com.frescuratotal.erp.sales.model.Sale;
-import com.frescuratotal.erp.sales.model.SaleReceipt;
-import com.frescuratotal.erp.sales.model.SaleService;
+import com.frescuratotal.erp.sales.model.*;
 import com.frescuratotal.erp.sales.view.SalesView;
 
 import java.math.BigDecimal;
@@ -18,6 +14,8 @@ public class SalesController {
     private final CustomerDao customerDao;
     private final ProductDao productDao;
     private final SaleService service;
+    private final CustomerImportService importService = new CustomerImportService();   // EJERCICIO 4
+    private final SalesStatsService statsService = new SalesStatsService();            // EJERCICIO 5
 
     public SalesController(SalesView view, CustomerDao customerDao, ProductDao productDao, SaleService service) {
         this.view = view;
@@ -34,11 +32,13 @@ public class SalesController {
                 option = view.showMenu();
                 switch (option) {
                     case 1 -> registerCustomer();
-                    case 2 -> view.showCustomers(customerDao.findAll());
+                    case 2 -> view.showCustomers(customerDao.findAll()); // primero trae los datos y luego la vista los muestra
                     case 3 -> newSale();
                     case 4 -> view.showSales(service.findAllSales());
                     case 5 -> sendToPreparation();
-                    case 6 -> view.showMessage("Returning to main menu...");
+                    case 6 -> importCustomers();                                  // EJERCICIO 4
+                    case 7 -> view.showCommercialStats(statsService.generateStats()); // EJERCICIO 5
+                    case 8 -> view.showMessage("Returning to main menu...");
                     default -> view.showMessage("Invalid option");
                 }
             } catch (NoSuchElementException e) {
@@ -46,7 +46,18 @@ public class SalesController {
             } catch (RuntimeException e) {
                 view.showMessage("The operation could not be completed: " + e.getMessage());
             }
-        } while (option != 6);
+        } while (option != 8);
+    }
+
+    // EJERCICIO 4: importar clientes. Si el servicio lanza IllegalArgumentException
+    // (archivo no existe o registros invalidos) se muestra "Error: ..." y se vuelve al menu.
+    private void importCustomers() {
+        try {
+            int total = importService.importCustomers();
+            view.showMessage("Importación completada. Total de clientes registrados: " + total);
+        } catch (IllegalArgumentException e) {
+            view.showMessage("Error: " + e.getMessage());
+        }
     }
 
     private void registerCustomer() {
@@ -90,6 +101,12 @@ public class SalesController {
             view.showMessage("Sale cancelled: no products were added.");
             return;
         }
+        // Tres lineas significan: pregunta la entrega → calcula el total con recargo → muéstralo
+
+        DeliveryType deliveryType = view.readDeliveryType();
+        BigDecimal finalTotal = service.calculateTotalWithDelivery(sale, deliveryType);
+        view.showMessage("Total to pay with " + deliveryType + " delivery: " + finalTotal);
+
         if (!view.confirm("Confirm the sale?")) {
             view.showMessage("Sale cancelled. Inventory was not changed.");
             return;

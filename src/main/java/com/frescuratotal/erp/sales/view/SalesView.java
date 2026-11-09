@@ -1,11 +1,7 @@
 package com.frescuratotal.erp.sales.view;
 
 import com.frescuratotal.erp.inventory.model.Product;
-import com.frescuratotal.erp.sales.model.Customer;
-import com.frescuratotal.erp.sales.model.CustomerType;
-import com.frescuratotal.erp.sales.model.Sale;
-import com.frescuratotal.erp.sales.model.SaleDetail;
-import com.frescuratotal.erp.sales.model.SaleReceipt;
+import com.frescuratotal.erp.sales.model.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,9 +21,23 @@ public class SalesView {
                 "3. New sale\n" +
                 "4. List sales\n" +
                 "5. Send sale to preparation (logistics)\n" +
-                "6. Back");
+                "6. Import customers from file\n" +
+                "7. Generate commercial statistics\n" +
+                "8. Back");
         return readInt("Option: ");
     }
+
+    public DeliveryType readDeliveryType() {
+        System.out.println("Delivery type:\n1. Standard\n2. Urgent (+12%)");
+        while (true) {
+            int option = readInt("Option: ");
+            if (option == 1) return DeliveryType.STANDARD;
+            if (option == 2) return DeliveryType.URGENT;
+            System.out.println("Invalid option, choose 1 or 2.");
+        }
+    }
+
+
 
     // ---------- Customers ----------
 
@@ -131,6 +141,24 @@ public class SalesView {
         return readInt("Sale ID: ");
     }
 
+    // EJERCICIO 5: muestra las estadisticas comerciales (la vista solo imprime, no calcula)
+    public void showCommercialStats(CommercialStats stats) {
+        if (!stats.hasData()) {
+            System.out.println("No existen datos suficientes para generar estadísticas comerciales.");
+            return;
+        }
+        System.out.println("===== ESTADISTICAS COMERCIALES =====");
+        if (stats.topCategory() == null) {
+            System.out.println("Categoria con mayor volumen vendido: no hay ventas confirmadas");
+        } else {
+            System.out.println("Categoria con mayor volumen vendido: " + stats.topCategory()
+                    + " - " + stats.topQuantity().stripTrailingZeros().toPlainString() + " unidades");
+        }
+        System.out.println("Clientes con devoluciones:");
+        // forEach con referencia a metodo: imprime cada nombre (si la lista esta vacia no imprime nada)
+        stats.returnedCustomers().forEach(name -> System.out.println("- " + name));
+    }
+
     public void showMessage(String message) {
         System.out.println(message);
     }
@@ -184,4 +212,6 @@ public class SalesView {
         System.out.print(prompt);
         return sc.nextLine().trim();
     }
+
+
 }

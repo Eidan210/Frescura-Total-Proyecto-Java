@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 
@@ -23,13 +24,19 @@ public class SaleService {
     private final SaleDao saleDao = new SaleDaoImpl();
     private final InvoiceDao invoiceDao = new InvoiceDaoImpl();
     private final InvoiceGenerator invoiceGenerator = new InvoiceGenerator(new ProductDaoImpl());
+    private final CustomerCache customerCache = CustomerCache.getInstance();
+    private final DeliveryService deliveryService = new DeliveryService();
 
     private static final BigDecimal NEAR_EXPIRY_DISCOUNT = new BigDecimal("0.50");
     private static final BigDecimal TAX_RATE = new BigDecimal("0.19");
 
-    /** Opens a new sale for a customer. It starts as REGISTERED (see the Sale constructor). */
+
     public Sale createSale(Customer customer, String registeredBy) {
         return new Sale(CodeGenerator.generateSaleNumber(), customer, registeredBy);
+    }
+
+    public Optional<Customer> findCustomerById(int id){
+        return customerCache.findById(id);
     }
 
     public void addProduct(Sale sale, int productId, BigDecimal quantity) {
@@ -82,10 +89,7 @@ public class SaleService {
         }
     }
 
-    /**
-     * The customer says "done": totals, invoice image and then one transaction for the data.
-     * The image goes first so a failure there leaves the sale and the stock untouched.
-     */
+
     public SaleReceipt confirmSale(Sale sale) {
         if (sale.getSaleDetails().isEmpty()) {
             throw new IllegalArgumentException("The sale has no products");
@@ -118,7 +122,7 @@ public class SaleService {
         return saleDao.findAll();
     }
 
-    /** Sends a registered sale to the logistics panel (status In Preparation). */
+
     public boolean sendToPreparation(int saleId) {
         return saleDao.updateStatus(saleId, SaleStatus.REGISTERED, SaleStatus.IN_PREPARATION);
     }
@@ -162,6 +166,11 @@ public class SaleService {
 
     private BigDecimal sum(Sale sale, Function<SaleDetail, BigDecimal> field) {
         return sale.getSaleDetails().stream().map(field).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal calculateTotalWithDelivery(Sale sale, DeliveryType type) {
+        calculateTotals(sale);
+        return deliveryService.calculateFinalTotal(sale, type);
     }
 
 

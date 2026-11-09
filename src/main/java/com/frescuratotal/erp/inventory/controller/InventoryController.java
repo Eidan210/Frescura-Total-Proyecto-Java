@@ -10,6 +10,7 @@ public class InventoryController {
     private final InventoryView view;
     private final LotDao lotDao;
     private final InventoryService service;
+    private final PurchaseReportService reportService = new PurchaseReportService();
 
     public InventoryController(InventoryView view, LotDao lotDao, InventoryService service) {
         this.view = view;
@@ -29,7 +30,7 @@ public class InventoryController {
             } catch (RuntimeException e) {
                 view.showMessage("The operation could not be completed: " + e.getMessage());
             }
-        } while (option != 10);
+        }   while (option != 11);
     }
 
     private void handle(int option) {
@@ -98,9 +99,22 @@ public class InventoryController {
                     service.runExpirationCheck(); // the stored status may be out of date
                     view.showLots(service.findLotsByStatus(status));
                 }
-                case 10 -> view.showMessage("Returning to main menu...");
+                case 10 -> generatePurchaseReport();
+                case 11 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
+    }
+
+    private void generatePurchaseReport() {
+        PurchaseReportResult result = reportService.generateDailyReport();
+
+        if (result.records() == 0) {
+            view.showMessage("No purchases today. The file " + result.file().toAbsolutePath()
+                    + " was created with the header only.");
+        } else {
+            view.showMessage("Report generated: " + result.file().toAbsolutePath()
+                    + " with " + result.records() + " purchase(s).");
+        }
     }
 }
 

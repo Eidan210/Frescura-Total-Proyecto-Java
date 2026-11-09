@@ -26,7 +26,8 @@ public class InventoryView {
                 "7. Run expiration check\n" +
                 "8. Trace lot\n" +
                 "9. List lots by status\n" +
-                "10. Back");
+                "10. Generate daily purchase report\n" +
+                "11. Back");
         return readInt("Option: ");
     }
 
