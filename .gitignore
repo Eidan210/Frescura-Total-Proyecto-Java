@@ -53,3 +53,5 @@ invoices/
 
 ### Credenciales locales ###
 db.properties
+### Reportes diarios de compras generados al ejecutar ###
+compras_*.csv

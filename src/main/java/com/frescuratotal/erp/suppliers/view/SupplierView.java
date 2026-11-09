@@ -20,7 +20,8 @@ public class SupplierView {
                 "4. Update supplier\n" +
                 "5. Delete supplier\n" +
                 "6. Search supplier by name\n" +
-                "7. Back");
+                "7. Generate daily purchase report (CSV)\n" +
+                "8. Back");
         return readInt("Option: ");
     }
 

@@ -1,5 +1,7 @@
 package com.frescuratotal.erp.suppliers.controller;
 
+import com.frescuratotal.erp.suppliers.model.PurchaseReport;
+import com.frescuratotal.erp.suppliers.model.PurchaseReportService;
 import com.frescuratotal.erp.suppliers.model.Supplier;
 import com.frescuratotal.erp.suppliers.model.SupplierDao;
 import com.frescuratotal.erp.suppliers.view.SupplierView;
@@ -9,10 +11,12 @@ import java.util.Optional;
 public class SupplierController {
     private final SupplierView view;
     private final SupplierDao dao;
+    private final PurchaseReportService reportService;
 
-    public SupplierController(SupplierView view, SupplierDao dao) {
+    public SupplierController(SupplierView view, SupplierDao dao, PurchaseReportService reportService) {
         this.view = view;
         this.dao = dao;
+        this.reportService = reportService;
     }
 
     public void start() {
@@ -26,10 +30,26 @@ public class SupplierController {
                 case 4 -> update();
                 case 5 -> delete();
                 case 6 -> searchByName();
-                case 7 -> view.showMessage("Returning to main menu...");
+                case 7 -> generateDailyPurchaseReport();
+                case 8 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
-        } while (option != 7);
+        } while (option != 8);
+    }
+
+    /** Runs straight away: the date is today's, so there is nothing to ask. */
+    private void generateDailyPurchaseReport() {
+        try {
+            PurchaseReport report = reportService.generateDailyReport();
+            if (report.isEmpty()) {
+                view.showMessage("There are no purchases today (" + report.date() + "): no operations to report.");
+                view.showMessage("The file was created with the header only: " + report.file());
+            } else {
+                view.showMessage("Report generated with " + report.purchaseCount() + " purchase(s): " + report.file());
+            }
+        } catch (RuntimeException e) {
+            view.showMessage("The report could not be generated: " + e.getMessage());
+        }
     }
 
     private void register() {
