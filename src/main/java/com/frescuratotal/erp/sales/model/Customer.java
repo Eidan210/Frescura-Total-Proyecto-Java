@@ -15,6 +15,18 @@ public class Customer {
     public Customer() {
     }
 
+    /** Copy constructor: the customer cache hands out copies so nobody can change what it stores. */
+    public Customer(Customer other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.document = other.document;
+        this.email = other.email;
+        this.phone = other.phone;
+        this.address = other.address;
+        this.type = other.type;
+        this.registrationDate = other.registrationDate;
+    }
+
     public Customer(String name, String document, String email, String phone, String address, CustomerType type ) {
         this.name = name;
         this.document = document;
