@@ -4,9 +4,13 @@ import com.frescuratotal.erp.common.exception.InsufficientStockException;
 import com.frescuratotal.erp.inventory.model.ProductDao;
 import com.frescuratotal.erp.sales.model.Customer;
 import com.frescuratotal.erp.sales.model.CustomerDao;
+import com.frescuratotal.erp.sales.model.CustomerImportResult;
+import com.frescuratotal.erp.sales.model.CustomerImportService;
 import com.frescuratotal.erp.sales.model.Sale;
 import com.frescuratotal.erp.sales.model.SaleReceipt;
 import com.frescuratotal.erp.sales.model.SaleService;
+import com.frescuratotal.erp.sales.model.delivery.DeliveryMode;
+import com.frescuratotal.erp.sales.model.stats.CommercialStatisticsService;
 import com.frescuratotal.erp.sales.view.SalesView;
 
 import java.math.BigDecimal;
@@ -18,12 +22,18 @@ public class SalesController {
     private final CustomerDao customerDao;
     private final ProductDao productDao;
     private final SaleService service;
+    private final CustomerImportService importService;
+    private final CommercialStatisticsService statisticsService;
 
-    public SalesController(SalesView view, CustomerDao customerDao, ProductDao productDao, SaleService service) {
+    /** customerDao is the CustomerService from Main: the calls stay the same, the cache works behind them. */
+    public SalesController(SalesView view, CustomerDao customerDao, ProductDao productDao, SaleService service,
+                           CustomerImportService importService, CommercialStatisticsService statisticsService) {
         this.view = view;
         this.customerDao = customerDao;
         this.productDao = productDao;
         this.service = service;
+        this.importService = importService;
+        this.statisticsService = statisticsService;
     }
 
     public void start() {
@@ -38,7 +48,11 @@ public class SalesController {
                     case 3 -> newSale();
                     case 4 -> view.showSales(service.findAllSales());
                     case 5 -> sendToPreparation();
-                    case 6 -> view.showMessage("Returning to main menu...");
+                    case 6 -> findCustomerById();
+                    case 7 -> importCustomers();
+                    case 8 -> view.showStatistics(statisticsService.generate());
+                    case 9 -> registerReturn();
+                    case 10 -> view.showMessage("Returning to main menu...");
                     default -> view.showMessage("Invalid option");
                 }
             } catch (NoSuchElementException e) {
@@ -46,7 +60,7 @@ public class SalesController {
             } catch (RuntimeException e) {
                 view.showMessage("The operation could not be completed: " + e.getMessage());
             }
-        } while (option != 6);
+        } while (option != 10);
     }
 
     private void registerCustomer() {
@@ -63,7 +77,7 @@ public class SalesController {
 
     private void newSale() {
         // 1. Select the customer
-        Optional<Customer> box = customerDao.findByDocument(view.readDocument());
+        Optional<Customer> box = service.findCustomerByDocument(view.readDocument());
         if (box.isEmpty()) {
             view.showMessage("Customer not found. Register the customer first (option 1).");
             return;
@@ -90,16 +104,58 @@ public class SalesController {
             view.showMessage("Sale cancelled: no products were added.");
             return;
         }
+
+        // 4. Delivery mode: the strategy calculates what the customer pays before confirming
+        DeliveryMode mode = view.readDeliveryMode();
+        view.showAmountToPay(sale, mode, service.previewTotal(sale, mode));
+
         if (!view.confirm("Confirm the sale?")) {
             view.showMessage("Sale cancelled. Inventory was not changed.");
             return;
         }
 
         try {
-            SaleReceipt receipt = service.confirmSale(sale);
+            SaleReceipt receipt = service.confirmSale(sale, mode);
             view.showReceipt(receipt);
         } catch (RuntimeException e) {
             view.showMessage("The sale could not be saved, nothing was changed: " + e.getMessage());
+        }
+    }
+
+    /** Goes through the cache: the second search of the same ID does not run SQL. */
+    private void findCustomerById() {
+        int id = view.readCustomerId();
+        Optional<Customer> customer = customerDao.findById(id);
+        if (customer.isPresent()) {
+            view.showCustomer(customer.get());
+        } else {
+            view.showMessage("Customer " + id + " was not found.");
+        }
+        view.showCacheStatus(service.getCustomerCache());
+    }
+
+    private void importCustomers() {
+        CustomerImportResult result = importService.importDefaultFile();
+        switch (result.status()) {
+            case FILE_NOT_FOUND -> view.showMessage("Error: No se encontró el archivo " + CustomerImportService.FILE_NAME + ".");
+            case INVALID_RECORDS -> {
+                view.showMessage("Error: Se encontraron registros inválidos. Importación cancelada.");
+                view.showErrors(result.errors());
+            }
+            case SAVE_FAILED -> {
+                view.showMessage("Error: No se pudo guardar un cliente. Importación cancelada, no se guardó ningún registro.");
+                view.showErrors(result.errors());
+            }
+            case COMPLETED -> view.showMessage("Importación completada. Total de clientes registrados: " + result.importedCount());
+        }
+    }
+
+    private void registerReturn() {
+        int saleId = view.readSaleId();
+        if (service.registerReturn(saleId)) {
+            view.showMessage("Sale " + saleId + " is now Returned.");
+        } else {
+            view.showMessage("Sale " + saleId + " does not exist or is not Delivered: only delivered sales can be returned.");
         }
     }
 

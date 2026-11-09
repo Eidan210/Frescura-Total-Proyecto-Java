@@ -14,10 +14,16 @@ import com.frescuratotal.erp.logistics.controller.LogisticsController;
 import com.frescuratotal.erp.logistics.view.LogisticsView;
 import com.frescuratotal.erp.sales.controller.SalesController;
 import com.frescuratotal.erp.sales.model.CustomerDaoImpl;
+import com.frescuratotal.erp.sales.model.CustomerImportService;
+import com.frescuratotal.erp.sales.model.CustomerService;
 import com.frescuratotal.erp.sales.model.SaleDaoImpl;
 import com.frescuratotal.erp.sales.model.SaleService;
+import com.frescuratotal.erp.sales.model.stats.CommercialStatisticsService;
+import com.frescuratotal.erp.sales.model.stats.SaleStatisticsDaoImpl;
 import com.frescuratotal.erp.sales.view.SalesView;
 import com.frescuratotal.erp.suppliers.controller.SupplierController;
+import com.frescuratotal.erp.suppliers.model.PurchaseReportDaoImpl;
+import com.frescuratotal.erp.suppliers.model.PurchaseReportService;
 import com.frescuratotal.erp.suppliers.model.SupplierDaoImpl;
 import com.frescuratotal.erp.suppliers.view.SupplierView;
 
@@ -88,16 +94,21 @@ public class Main {
                     break;
                 case 2:
                     // Sales module
-                    new SalesController(new SalesView(sc), new CustomerDaoImpl(),
-                            new ProductDaoImpl(), new SaleService()).start();
+                    // CustomerService replaces the plain DAO: same calls, but with the shared cache
+                    CustomerService customerService = new CustomerService(new CustomerDaoImpl());
+                    new SalesController(new SalesView(sc), customerService, new ProductDaoImpl(),
+                            new SaleService(customerService), new CustomerImportService(customerService),
+                            new CommercialStatisticsService(new SaleStatisticsDaoImpl())).start();
                     break;
                 case 3:
                     // Suppliers module
-                    new SupplierController(new SupplierView(sc), new SupplierDaoImpl()).start();
+                    new SupplierController(new SupplierView(sc), new SupplierDaoImpl(),
+                            new PurchaseReportService(new PurchaseReportDaoImpl())).start();
                     break;
                 case 4:
 
-                    new LogisticsController(new LogisticsView(sc), new SaleDaoImpl(), new CustomerDaoImpl(),
+                    new LogisticsController(new LogisticsView(sc), new SaleDaoImpl(),
+                            new CustomerService(new CustomerDaoImpl()),
                             new DeliveryRouteDaoimpl(), new DeliveryAssignmentDaoimpl(), new RouteSaleDaoimpl(),
                             new VehicleDaoImpl(), new DriverDaoimpl()).start();
                     break;

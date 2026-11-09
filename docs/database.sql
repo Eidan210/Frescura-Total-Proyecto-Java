@@ -190,6 +190,8 @@ total_impuesto DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
 monto_total DECIMAL(12, 2) NOT NULL,
 id_estado INT NOT NULL,
 usuario_registro VARCHAR(100) COMMENT 'Usuario que registró la venta',
+modalidad_entrega VARCHAR(20) NOT NULL DEFAULT 'STANDARD' COMMENT 'STANDARD (0%) o URGENT (+12%)',
+recargo_entrega DECIMAL(12, 2) NOT NULL DEFAULT 0.00 COMMENT 'Recargo de la entrega, ya incluido en monto_total',
 FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
 FOREIGN KEY (id_estado) REFERENCES estados_venta(id_estado),
 INDEX idx_estado (id_estado),
@@ -309,7 +311,8 @@ INSERT INTO estados_venta (nombre, descripcion) VALUES
 ('En Preparacion', 'Pedido en preparación para despacho'),
 ('En Transito', 'Pedido en tránsito hacia el cliente'),
 ('Entregada', 'Pedido entregado al cliente'),
-('Cancelada', 'Venta cancelada');
+('Cancelada', 'Venta cancelada'),
+('Devuelta', 'Venta entregada que el cliente devolvió');
 
 INSERT INTO informacion_empresa (nombre_empresa, nit, direccion, ciudad, telefono, email) VALUES
 ('Frescura Total S.A.S.', '900123456-7', 'Calle 123 #45-67', 'Bogotá', '(601) 234-5678', 'contacto@frescuratotal.com');

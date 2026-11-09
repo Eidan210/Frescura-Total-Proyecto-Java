@@ -9,12 +9,15 @@ import com.frescuratotal.erp.inventory.model.LotDao;
 import com.frescuratotal.erp.inventory.model.LotDaoImpl;
 import com.frescuratotal.erp.inventory.model.LotStatus;
 import com.frescuratotal.erp.inventory.model.ProductDaoImpl;
+import com.frescuratotal.erp.sales.model.delivery.DeliveryFeeService;
+import com.frescuratotal.erp.sales.model.delivery.DeliveryMode;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 
@@ -23,9 +26,34 @@ public class SaleService {
     private final SaleDao saleDao = new SaleDaoImpl();
     private final InvoiceDao invoiceDao = new InvoiceDaoImpl();
     private final InvoiceGenerator invoiceGenerator = new InvoiceGenerator(new ProductDaoImpl());
+    private final DeliveryFeeService deliveryFeeService = new DeliveryFeeService();
+    private final CustomerService customerService;
 
     private static final BigDecimal NEAR_EXPIRY_DISCOUNT = new BigDecimal("0.50");
     private static final BigDecimal TAX_RATE = new BigDecimal("0.19");
+
+    public SaleService() {
+        this(new CustomerService(new CustomerDaoImpl()));
+    }
+
+    /** The customer service brings the shared cache (CustomerCache is a singleton). */
+    public SaleService(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
+    /** Customers for a sale go through the cache: 15 sales of the same customer run the SQL once. */
+    public Optional<Customer> findCustomer(int customerId) {
+        return customerService.findById(customerId);
+    }
+
+    public Optional<Customer> findCustomerByDocument(String document) {
+        return customerService.findByDocument(document);
+    }
+
+    /** Same instance that CustomerService uses. */
+    public CustomerCache getCustomerCache() {
+        return customerService.getCache();
+    }
 
     /** Opens a new sale for a customer. It starts as REGISTERED (see the Sale constructor). */
     public Sale createSale(Customer customer, String registeredBy) {
@@ -87,11 +115,24 @@ public class SaleService {
      * The image goes first so a failure there leaves the sale and the stock untouched.
      */
     public SaleReceipt confirmSale(Sale sale) {
+        return confirmSale(sale, DeliveryMode.STANDARD);
+    }
+
+    /**
+     * Value the customer will pay with that delivery mode, without saving anything.
+     * The controller shows it before asking the customer to confirm.
+     */
+    public BigDecimal previewTotal(Sale sale, DeliveryMode mode) {
         if (sale.getSaleDetails().isEmpty()) {
             throw new IllegalArgumentException("The sale has no products");
         }
-
         calculateTotals(sale);
+        return deliveryFeeService.calculateFinalAmount(sale, mode);
+    }
+
+    public SaleReceipt confirmSale(Sale sale, DeliveryMode mode) {
+        BigDecimal finalAmount = previewTotal(sale, mode);
+        applyDelivery(sale, mode, finalAmount);
 
         CompanyInfo company = invoiceDao.findCompanyInfo();
         String invoiceNumber = CodeGenerator.generateInvoiceNumber();
@@ -151,6 +192,18 @@ public class SaleService {
         BigDecimal lineTotal = base.add(taxAmount);
         saleDetail.setLineTotal(lineTotal);
 
+    }
+
+    /** The strategy already calculated the final value: the surcharge is just the difference. */
+    private void applyDelivery(Sale sale, DeliveryMode mode, BigDecimal finalAmount) {
+        sale.setDeliveryMode(mode);
+        sale.setDeliveryFee(finalAmount.subtract(sale.getTotalAmount()));
+        sale.setTotalAmount(finalAmount);
+    }
+
+    /** Sale that the customer gave back (status Returned). Only a delivered sale can be returned. */
+    public boolean registerReturn(int saleId) {
+        return saleDao.updateStatus(saleId, SaleStatus.DELIVERED, SaleStatus.RETURNED);
     }
 
     void calculateTotals(Sale sale) {
