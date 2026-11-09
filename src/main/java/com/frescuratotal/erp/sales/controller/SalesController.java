@@ -38,7 +38,7 @@ public class SalesController {
                     case 5 -> sendToPreparation();
                     case 6 -> importCustomers();                                  // EJERCICIO 4
                     case 7 -> view.showCommercialStats(statsService.generateStats()); // EJERCICIO 5
-                    case 8 -> view.showMessage("Returning to main menu...");
+                    case 9 -> view.showMessage("Returning to main menu...");
                     default -> view.showMessage("Invalid option");
                 }
             } catch (NoSuchElementException e) {

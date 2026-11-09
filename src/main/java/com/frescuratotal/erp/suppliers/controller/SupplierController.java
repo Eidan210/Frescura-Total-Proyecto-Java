@@ -2,13 +2,18 @@ package com.frescuratotal.erp.suppliers.controller;
 
 import com.frescuratotal.erp.suppliers.model.Supplier;
 import com.frescuratotal.erp.suppliers.model.SupplierDao;
+import com.frescuratotal.erp.suppliers.model.SupplierPerformance;
 import com.frescuratotal.erp.suppliers.view.SupplierView;
+import com.frescuratotal.erp.suppliers.model.SupplierReportService;
+import java.util.Optional;
+
 
 import java.util.Optional;
 
 public class SupplierController {
     private final SupplierView view;
     private final SupplierDao dao;
+    private final SupplierReportService reportService = new SupplierReportService();
 
     public SupplierController(SupplierView view, SupplierDao dao) {
         this.view = view;
@@ -26,7 +31,8 @@ public class SupplierController {
                 case 4 -> update();
                 case 5 -> delete();
                 case 6 -> searchByName();
-                case 7 -> view.showMessage("Returning to main menu...");
+                case 7 -> view.showPerformance(reportService.generateReport());
+                case 8 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
         } while (option != 7);
@@ -72,4 +78,6 @@ public class SupplierController {
         if (supplier.isEmpty()) view.showMessage("Supplier not found.");
         return supplier;
     }
+
+
 }

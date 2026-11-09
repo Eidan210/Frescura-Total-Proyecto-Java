@@ -1,6 +1,7 @@
 package com.frescuratotal.erp.suppliers.view;
 
 import com.frescuratotal.erp.suppliers.model.Supplier;
+import com.frescuratotal.erp.suppliers.model.SupplierPerformance;
 
 import java.util.List;
 import java.util.Scanner;
@@ -20,8 +21,21 @@ public class SupplierView {
                 "4. Update supplier\n" +
                 "5. Delete supplier\n" +
                 "6. Search supplier by name\n" +
-                "7. Back");
+                "7. Supplier performance report" +
+                "8. Back");
         return readInt("Option: ");
+    }
+
+    public void showPerformance(SupplierPerformance report) {
+        if (!report.hasData()) {
+            System.out.println("No hay datos de inventario suficientes para generar estadísticas.");
+            return;
+        }
+        System.out.println("*** Reporte de Rendimiento de Proveedores ***");
+        System.out.println(">> Proveedor con Mayor Volumen de Suministro:");
+        System.out.println(report.topSupplier());
+        System.out.println(">> Proveedores con Lotes Vencidos Registrados:");
+        report.expiredSuppliers().forEach(name -> System.out.println("- " + name));
     }
 
     public Supplier readNewSupplier() {
@@ -72,6 +86,7 @@ public class SupplierView {
                 "\nActive: " + (s.getActive() == 1 ? "Yes" : "No") +
                 "\nRegistered: " + s.getRegistrationDate());
     }
+
 
     public void showSuppliers(List<Supplier> suppliers) {
         if (suppliers.isEmpty()) {
