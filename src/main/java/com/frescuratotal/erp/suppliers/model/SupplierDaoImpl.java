@@ -1,6 +1,7 @@
 package com.frescuratotal.erp.suppliers.model;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
+import com.frescuratotal.erp.inventory.model.DailyPurchase;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -119,6 +120,37 @@ public class SupplierDaoImpl implements SupplierDao{
             System.out.println("Database error: " + e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public List<SupplierData> stadistics() {
+        String sql = """
+                SELECT\s
+                    l.id_lote,
+                    l.cantidad_inicial,
+                    e.nombre AS estado_lote,
+                    p.id_proveedor,
+                    p.nombre AS nombre_proveedor
+                FROM lotes_inventario l
+                INNER JOIN proveedores p ON l.id_proveedor = p.id_proveedor
+                INNER JOIN estados_lote e ON l.id_estado = e.id_estado;
+                """;
+
+        List<SupplierData> lots = new ArrayList<>();
+        try (Statement stmt = getConnection().createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                lots.add(new SupplierData(
+                        rs.getInt("id_lote"),
+                        rs.getBigDecimal("cantidad_inicial"),
+                        rs.getString("estado_lote"),
+                        rs.getInt("id_proveedor"),
+                        rs.getString("nombre_proveedor")));
+            }
+        } catch (SQLException e) {
+            System.out.println("Database error: " + e.getMessage());
+        }
+        return lots;
     }
 
     private Supplier mapResultSetToSupplier(ResultSet rs) throws SQLException {

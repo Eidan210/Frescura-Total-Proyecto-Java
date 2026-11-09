@@ -20,8 +20,20 @@ public class SupplierView {
                 "4. Update supplier\n" +
                 "5. Delete supplier\n" +
                 "6. Search supplier by name\n" +
-                "7. Back");
+                "7. Generate suppliers performance report\n" +
+                "8. Back");
         return readInt("Option: ");
+    }
+
+    public void showPerformanceReport(String topSupplier, List<String> expiredSuppliers) {
+        System.out.println("\n*** Reporte de Rendimiento de Proveedores ***\n");
+        System.out.println(">> Proveedor con Mayor Volumen de Suministro:");
+        System.out.println(topSupplier);
+        System.out.println("\n>> Proveedores con Lotes Vencidos Registrados:");
+        if (expiredSuppliers.isEmpty()) {
+            System.out.println("(ninguno)");
+        }
+        expiredSuppliers.forEach(name -> System.out.println("- " + name));
     }
 
     public Supplier readNewSupplier() {

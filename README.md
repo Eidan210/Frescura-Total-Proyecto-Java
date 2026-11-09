@@ -58,6 +58,10 @@ En una bodega de alimentos, un lote que vence sin venderse es dinero perdido. Es
 > [!NOTE]
 > Las rutas se crean directamente en `IN_TRANSIT` y pasan a `COMPLETED` al terminar. `PLANNED` y `CANCELLED` existen en el modelo, pero todavía ninguna opción del menú los asigna.
 
+## Módulo de Analíticas
+Nos permite ver en resumen el proveedor o Supplier en ingles con mas volumen de suministro y aquellos que tienen lotes vencidos
+Esto ayuda a la empresa a tener a la mano de forma mas eficiente la informacion
+
 ## Arquitectura
 
 Cada módulo sigue el patrón MVC con DAO para el acceso a datos. Inventario y Ventas añaden una capa de servicio con las reglas de negocio; en los demás casos, el controller llama directamente al DAO. `DatabaseConnection` es un singleton que comparte la conexión JDBC.

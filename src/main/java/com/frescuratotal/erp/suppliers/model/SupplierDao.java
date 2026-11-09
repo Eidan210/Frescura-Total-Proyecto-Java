@@ -9,4 +9,5 @@ public interface SupplierDao {
     List<Supplier> findAll();
     boolean update(Supplier supplier);
     boolean delete(int id);
+    List<SupplierData> stadistics();
 }
