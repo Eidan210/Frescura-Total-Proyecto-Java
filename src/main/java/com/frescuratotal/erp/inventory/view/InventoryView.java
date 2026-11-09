@@ -26,7 +26,8 @@ public class InventoryView {
                 "7. Run expiration check\n" +
                 "8. Trace lot\n" +
                 "9. List lots by status\n" +
-                "10. Back");
+                "10. Generate daily purchase report (CSV)\n" +   // EJERCICIO 2
+                "11. Back");
         return readInt("Option: ");
     }
 
@@ -51,6 +52,17 @@ public class InventoryView {
 
     public void showMessage(String message) {
         System.out.println(message);
+    }
+
+    // EJERCICIO 2: la vista solo informa el resultado; el archivo lo escribe el servicio.
+    public void showPurchaseReport(PurchaseReportService.PurchaseReportResult result) {
+        if (result.records() == 0) {
+            System.out.println("No hay compras realizadas hoy para reportar. "
+                    + "El archivo se creó solo con la cabecera.");
+        } else {
+            System.out.println("Reporte generado con " + result.records() + " compra(s).");
+        }
+        System.out.println("Archivo: " + result.file());
     }
 
     public Lot readNewLot() {

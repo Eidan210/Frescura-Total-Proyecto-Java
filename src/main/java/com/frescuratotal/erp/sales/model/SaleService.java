@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 
@@ -23,6 +24,11 @@ public class SaleService {
     private final SaleDao saleDao = new SaleDaoImpl();
     private final InvoiceDao invoiceDao = new InvoiceDaoImpl();
     private final InvoiceGenerator invoiceGenerator = new InvoiceGenerator(new ProductDaoImpl());
+    // EJERCICIO 3: servicio que elige la estrategia de entrega y calcula el total final.
+    private final DeliveryService deliveryService = new DeliveryService();
+    // EJERCICIO 1: "otro módulo" que consulta clientes. Aunque este CustomerService es un
+    // objeto distinto al de otras clases, por dentro usa CustomerCache.getInstance(): MISMA caché.
+    private final CustomerService customerService = new CustomerService();
 
     private static final BigDecimal NEAR_EXPIRY_DISCOUNT = new BigDecimal("0.50");
     private static final BigDecimal TAX_RATE = new BigDecimal("0.19");
@@ -30,6 +36,17 @@ public class SaleService {
     /** Opens a new sale for a customer. It starts as REGISTERED (see the Sale constructor). */
     public Sale createSale(Customer customer, String registeredBy) {
         return new Sale(CodeGenerator.generateSaleNumber(), customer, registeredBy);
+    }
+
+    // EJERCICIO 3: método "puente". El controlador no conoce a deliveryService (es private),
+    // así que SaleService le pasa la descripción hacia arriba.
+    public String getDeliveryDescription(DeliveryType deliveryType) {
+        return deliveryService.getDeliveryDescription(deliveryType);
+    }
+
+    // EJERCICIO 1: otro módulo buscando clientes -> pasa por CustomerService -> usa la caché única.
+    public Optional<Customer> findCustomerById(int id) {
+        return customerService.findById(id);
     }
 
     public void addProduct(Sale sale, int productId, BigDecimal quantity) {
@@ -86,12 +103,17 @@ public class SaleService {
      * The customer says "done": totals, invoice image and then one transaction for the data.
      * The image goes first so a failure there leaves the sale and the stock untouched.
      */
-    public SaleReceipt confirmSale(Sale sale) {
+    public SaleReceipt confirmSale(Sale sale, DeliveryType delivery) {
         if (sale.getSaleDetails().isEmpty()) {
             throw new IllegalArgumentException("The sale has no products");
         }
 
         calculateTotals(sale);
+        // EJERCICIO 3: DESPUÉS de calcular los totales (antes, getTotalAmount() estaría vacío)
+        // y ANTES de la factura y del guardado, para que ambos usen el total con recargo.
+        // Se lee de adentro hacia afuera: calcula el total final -> lo guarda en la venta.
+        // (Sin el setTotalAmount, el resultado se perdería: BigDecimal es inmutable.)
+        sale.setTotalAmount(deliveryService.calculateFinalAmount(sale, delivery));
 
         CompanyInfo company = invoiceDao.findCompanyInfo();
         String invoiceNumber = CodeGenerator.generateInvoiceNumber();

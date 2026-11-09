@@ -5,7 +5,11 @@ public enum SaleStatus {
     IN_PREPARATION(2),
     IN_TRANSIT(3),
     DELIVERED(4),
-    CANCELLED(5);
+    CANCELLED(5),
+    // EJERCICIO 5: estado nuevo "Devuelta". Debe existir también en la BD con id 6
+    // (ejecutar docs/practica_examen.sql). Si la BD tuviera una venta con estado 6 y el
+    // enum no lo tuviera, fromId lanzaría error al listar ventas.
+    RETURNED(6);
 
     private final int id;
 

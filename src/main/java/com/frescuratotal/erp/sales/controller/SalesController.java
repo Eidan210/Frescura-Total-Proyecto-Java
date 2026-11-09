@@ -1,15 +1,13 @@
 package com.frescuratotal.erp.sales.controller;
 
+import com.frescuratotal.erp.common.exception.ImportException;
 import com.frescuratotal.erp.common.exception.InsufficientStockException;
 import com.frescuratotal.erp.inventory.model.ProductDao;
-import com.frescuratotal.erp.sales.model.Customer;
-import com.frescuratotal.erp.sales.model.CustomerDao;
-import com.frescuratotal.erp.sales.model.Sale;
-import com.frescuratotal.erp.sales.model.SaleReceipt;
-import com.frescuratotal.erp.sales.model.SaleService;
+import com.frescuratotal.erp.sales.model.*;
 import com.frescuratotal.erp.sales.view.SalesView;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -18,6 +16,9 @@ public class SalesController {
     private final CustomerDao customerDao;
     private final ProductDao productDao;
     private final SaleService service;
+    // EJERCICIO 4 y 5: servicios nuevos. Se crean aquí para no cambiar el constructor ni Main.
+    private final CustomerImportService importService = new CustomerImportService();
+    private final CommercialStatsService statsService = new CommercialStatsService();
 
     public SalesController(SalesView view, CustomerDao customerDao, ProductDao productDao, SaleService service) {
         this.view = view;
@@ -38,7 +39,10 @@ public class SalesController {
                     case 3 -> newSale();
                     case 4 -> view.showSales(service.findAllSales());
                     case 5 -> sendToPreparation();
-                    case 6 -> view.showMessage("Returning to main menu...");
+                    case 6 -> findCustomerById();      // EJERCICIO 1
+                    case 7 -> importCustomers();       // EJERCICIO 4
+                    case 8 -> showCommercialStats();   // EJERCICIO 5
+                    case 9 -> view.showMessage("Returning to main menu...");
                     default -> view.showMessage("Invalid option");
                 }
             } catch (NoSuchElementException e) {
@@ -46,7 +50,7 @@ public class SalesController {
             } catch (RuntimeException e) {
                 view.showMessage("The operation could not be completed: " + e.getMessage());
             }
-        } while (option != 6);
+        } while (option != 9); // "Back" ahora es la opción 9
     }
 
     private void registerCustomer() {
@@ -90,16 +94,58 @@ public class SalesController {
             view.showMessage("Sale cancelled: no products were added.");
             return;
         }
+
+        // EJERCICIO 3: se pregunta la modalidad ANTES de confirmar (el cliente debe saber
+        // si le cobran el 12% antes de aceptar) y DESPUÉS de revisar que haya productos.
+        DeliveryType delivery = view.readDeliveryType();
+
         if (!view.confirm("Confirm the sale?")) {
             view.showMessage("Sale cancelled. Inventory was not changed.");
             return;
         }
 
         try {
-            SaleReceipt receipt = service.confirmSale(sale);
+            // EJERCICIO 3: dos parámetros separados por coma; la firma en SaleService debe coincidir.
+            SaleReceipt receipt = service.confirmSale(sale, delivery);
             view.showReceipt(receipt);
+            view.showMessage(service.getDeliveryDescription(delivery));
         } catch (RuntimeException e) {
             view.showMessage("The sale could not be saved, nothing was changed: " + e.getMessage());
+        }
+    }
+
+    // EJERCICIO 1: el controlador NO sabe si el cliente vino de la caché o de la BD
+    // (eso lo decide CustomerService). Solo recibe la "caja" Optional y la muestra.
+    private void findCustomerById() {
+        int id = view.readCustomerId();
+        Optional<Customer> customer = service.findCustomerById(id);
+        if (customer.isPresent()) {
+            view.showCustomers(List.of(customer.get()));
+        } else {
+            view.showMessage("Cliente " + id + " no encontrado.");
+        }
+    }
+
+    // EJERCICIO 4: todo el trabajo está en el servicio. Aquí solo se muestran los mensajes.
+    // ImportException trae el mensaje exacto del enunciado + el detalle de las filas malas.
+    // Se captura para regresar al menú sin cerrar la aplicación.
+    private void importCustomers() {
+        try {
+            int total = importService.importCustomers();
+            view.showMessage("Importación completada. Total de clientes registrados: " + total);
+        } catch (ImportException e) {
+            view.showMessage(e.getMessage());
+            view.showImportErrors(e.getDetails());
+        }
+    }
+
+    // EJERCICIO 5: Optional vacío = no hay ventas -> mensaje informativo, sin excepciones.
+    private void showCommercialStats() {
+        Optional<CommercialStats> stats = statsService.generate();
+        if (stats.isPresent()) {
+            view.showCommercialStats(stats.get());
+        } else {
+            view.showMessage("No existen datos suficientes para generar estadísticas comerciales.");
         }
     }
 

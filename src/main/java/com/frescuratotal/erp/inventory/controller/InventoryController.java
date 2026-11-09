@@ -10,6 +10,8 @@ public class InventoryController {
     private final InventoryView view;
     private final LotDao lotDao;
     private final InventoryService service;
+    // EJERCICIO 2: servicio del reporte. Se crea aquí para no cambiar el constructor ni Main.
+    private final PurchaseReportService purchaseReportService = new PurchaseReportService();
 
     public InventoryController(InventoryView view, LotDao lotDao, InventoryService service) {
         this.view = view;
@@ -29,7 +31,7 @@ public class InventoryController {
             } catch (RuntimeException e) {
                 view.showMessage("The operation could not be completed: " + e.getMessage());
             }
-        } while (option != 10);
+        } while (option != 11); // "Back" ahora es la opción 11
     }
 
     private void handle(int option) {
@@ -98,7 +100,9 @@ public class InventoryController {
                     service.runExpirationCheck(); // the stored status may be out of date
                     view.showLots(service.findLotsByStatus(status));
                 }
-                case 10 -> view.showMessage("Returning to main menu...");
+                // EJERCICIO 2: no pide ningún dato; la fecha la toma el servicio con LocalDate.now().
+                case 10 -> view.showPurchaseReport(purchaseReportService.generateDailyReport());
+                case 11 -> view.showMessage("Returning to main menu...");
                 default -> view.showMessage("Invalid option");
             }
     }
