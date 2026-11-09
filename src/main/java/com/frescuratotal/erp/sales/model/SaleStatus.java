@@ -5,7 +5,8 @@ public enum SaleStatus {
     IN_PREPARATION(2),
     IN_TRANSIT(3),
     DELIVERED(4),
-    CANCELLED(5);
+    CANCELLED(5),
+    RETURNED(6);
 
     private final int id;
 
@@ -15,6 +16,14 @@ public enum SaleStatus {
 
     public int getId() {
         return id;
+    }
+
+    /**
+     * "CONFIRMADA" in the statistics guide: a sale that was confirmed and still counts as sold.
+     * Cancelled and returned sales do not.
+     */
+    public boolean isConfirmed() {
+        return this != CANCELLED && this != RETURNED;
     }
 
     public static SaleStatus fromId(int id){
