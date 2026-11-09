@@ -163,7 +163,7 @@ El script [`docs/database.sql`](docs/database.sql) crea 22 tablas y carga datos 
 
 ## Ejercicios preparatorios
 
-Solución de la guía de práctica (5 ejercicios), integrada en las capas existentes.
+Solución de la guía de práctica (5 ejercicios), integrada en las capas existentes. Archivos editados y explicación por ejercicio: [`docs/EJERCICIOS_PREPARATORIOS.md`](docs/EJERCICIOS_PREPARATORIOS.md).
 
 | # | Ejercicio | Dónde está | Menú |
 |---|---|---|---|
