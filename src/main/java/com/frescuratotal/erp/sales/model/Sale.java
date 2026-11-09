@@ -1,5 +1,7 @@
 package com.frescuratotal.erp.sales.model;
 
+import com.frescuratotal.erp.sales.model.delivery.DeliveryMode;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ public class Sale {
     private BigDecimal totalAmount;
     private SaleStatus saleStatus;
     private String registeredBy;
+    private DeliveryMode deliveryMode = DeliveryMode.STANDARD;
+    private BigDecimal deliveryFee = BigDecimal.ZERO;
     private List<SaleDetail> saleDetails = new ArrayList<>();
 
 
@@ -110,6 +114,23 @@ public class Sale {
         this.registeredBy = registeredBy;
     }
 
+    public DeliveryMode getDeliveryMode() {
+        return deliveryMode;
+    }
+
+    public void setDeliveryMode(DeliveryMode deliveryMode) {
+        this.deliveryMode = deliveryMode;
+    }
+
+    /** Surcharge of the delivery mode, already included in totalAmount. */
+    public BigDecimal getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(BigDecimal deliveryFee) {
+        this.deliveryFee = deliveryFee;
+    }
+
     public List<SaleDetail> getSaleDetails() {
         return saleDetails;
     }
@@ -131,6 +152,8 @@ public class Sale {
                 ", totalAmount=" + totalAmount +
                 ", saleStatus=" + saleStatus +
                 ", registeredBy='" + registeredBy + '\'' +
+                ", deliveryMode=" + deliveryMode +
+                ", deliveryFee=" + deliveryFee +
                 ", saleDetails=" + saleDetails +
                 '}';
     }

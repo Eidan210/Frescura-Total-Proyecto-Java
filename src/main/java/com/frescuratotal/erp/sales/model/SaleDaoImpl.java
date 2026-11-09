@@ -2,6 +2,7 @@ package com.frescuratotal.erp.sales.model;
 
 import com.frescuratotal.erp.common.DatabaseConnection;
 import com.frescuratotal.erp.common.exception.InsufficientStockException;
+import com.frescuratotal.erp.sales.model.delivery.DeliveryMode;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -19,8 +20,9 @@ public class SaleDaoImpl implements SaleDao {
     public boolean save(Sale sale) {
         String saleSql = """
                 INSERT INTO ventas (numero_venta, id_cliente, subtotal, total_descuento,
-                                    total_impuesto, monto_total, id_estado, usuario_registro)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""";
+                                    total_impuesto, monto_total, id_estado, usuario_registro,
+                                    modalidad_entrega, recargo_entrega)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""";
 
         String detailSql = """
                 INSERT INTO detalles_venta (id_venta, id_lote, cantidad_vendida, precio_unitario,
@@ -46,6 +48,8 @@ public class SaleDaoImpl implements SaleDao {
                 ps.setBigDecimal(6, sale.getTotalAmount());
                 ps.setInt(7, sale.getSaleStatus().getId());
                 ps.setString(8, sale.getRegisteredBy());
+                ps.setString(9, sale.getDeliveryMode().name());
+                ps.setBigDecimal(10, sale.getDeliveryFee());
                 ps.executeUpdate();
 
                 try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -120,6 +124,8 @@ public class SaleDaoImpl implements SaleDao {
                 sale.setTotalAmount(rs.getBigDecimal("monto_total"));
                 sale.setSaleStatus(SaleStatus.fromId(rs.getInt("id_estado")));
                 sale.setRegisteredBy(rs.getString("usuario_registro"));
+                sale.setDeliveryMode(DeliveryMode.fromName(rs.getString("modalidad_entrega")));
+                sale.setDeliveryFee(rs.getBigDecimal("recargo_entrega"));
 
                 sales.add(sale);
             }

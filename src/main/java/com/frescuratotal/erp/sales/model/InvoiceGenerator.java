@@ -261,6 +261,12 @@ public class InvoiceGenerator {
         g.setFont(font(Font.PLAIN, 17));
         g.drawString("Products marked in orange had a near-expiry discount.", MARGIN, y + 72);
         g.drawString("VAT is calculated after discounts.", MARGIN, y + 96);
+        if (invoice.getSale() != null && invoice.getSale().getDeliveryFee() != null
+                && invoice.getSale().getDeliveryFee().signum() > 0) {
+            g.drawString("Total includes " + invoice.getSale().getDeliveryMode().getLabel() + " delivery ("
+                    + invoice.getSale().getDeliveryMode().getDescription() + "): "
+                    + money(invoice.getSale().getDeliveryFee()), MARGIN, y + 120);
+        }
 
         g.setColor(LIGHT);
         g.fillRoundRect(boxX, y, boxWidth, 210, 16, 16);
